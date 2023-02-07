@@ -172,16 +172,16 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
           retrySupport.retry({ ->
             if (rolesExtractor) {
               permissionService.loginWithRoles(email, roles)
-              log.debug("Successful X509 authentication (user: {}, roleCount: {}, roles: {})", email, roles.size(), roles)
+              log.warn("Successful X509 authentication (user: {}, roleCount: {}, roles: {})", email, roles.size(), roles)
             } else {
               permissionService.login(email)
-              log.debug("Successful X509 authentication (user: {})", email)
+              log.warn("Successful X509 authentication (user: {})", email)
             }
           }, 5, Duration.ofSeconds(2), false)
 
           id = id.withTag("success", true).withTag("fallback", "none")
         } catch (Exception e) {
-          log.debug(
+          log.warn(
             "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
             email,
             roles.size(),
@@ -206,7 +206,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       if (fiatStatus.isEnabled()) {
         def permission = fiatPermissionEvaluator.getPermission(email)
         def roleNames = permission?.getRoles()?.collect { it -> it.getName() }
-        log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
+        log.warn("Extracted roles from fiat permissions for user {}: {} : {}", email, roleNames, permission)
         if (roleNames) {
           roles.addAll(roleNames)
         }
