@@ -30,6 +30,7 @@ dependencies {
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
+<<<<<<< HEAD
 test {
   useJUnitPlatform {
     includeEngines "junit-jupiter"
@@ -38,6 +39,8 @@ test {
 
 test.jvmArgs = ['--add-opens=java.base/java.nio.file=ALL-UNNAMED', '--add-exports=java.base/java.nio.file=ALL-UNNAMED']
 
+=======
+>>>>>>> 576e6ca2 (fix(tests): Introduce junit5 vintage engine for running junit4 test cases over junit5 in gate (#1623))
 compileTestKotlin {
   kotlinOptions {
     languageVersion = "1.7"

@@ -73,6 +73,7 @@ allprojects {
     testLogging {
       exceptionFormat = 'full'
     }
+    useJUnitPlatform()
   }
 }
 
