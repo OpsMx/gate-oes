@@ -138,7 +138,9 @@ public class TaskService {
         taskServiceProperties.getDefaultIntervalBetweenPolls());
   }
 
-  /** @deprecated This pipeline operation does not belong here. */
+  /**
+   * @deprecated This pipeline operation does not belong here.
+   */
   @Deprecated
   public Map cancelPipeline(final String id, final String reason) {
     return getOrcaServiceSelector().select().cancelPipeline(id, reason, false, "");

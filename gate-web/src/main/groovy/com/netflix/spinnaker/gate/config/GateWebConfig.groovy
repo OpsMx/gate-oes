@@ -42,8 +42,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 import retrofit.RetrofitError
 
-import javax.servlet.Filter
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.Filter
+import jakarta.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan

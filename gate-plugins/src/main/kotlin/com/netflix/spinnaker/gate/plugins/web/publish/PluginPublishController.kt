@@ -28,12 +28,11 @@ import io.swagger.annotations.ApiOperation
 import java.lang.String.format
 import lombok.SneakyThrows
 import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -94,7 +93,7 @@ class PluginPublishController(
             .addFormDataPart(
               "plugin",
               format("%s-%s.zip", pluginId, pluginVersion),
-              body.toRequestBody(("application/octet-stream").toMediaType())
+              RequestBody.create("application/octet-stream".toMediaTypeOrNull(), body)
             )
             .build()
         )

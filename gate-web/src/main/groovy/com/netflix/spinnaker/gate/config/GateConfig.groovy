@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
@@ -36,6 +38,7 @@ import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
+import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -49,9 +52,11 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -60,13 +65,16 @@ import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
 import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
 import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
 import redis.clients.jedis.JedisPool
 import retrofit.Endpoint
+import java.util.HashMap;
 
+import jakarta.servlet.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -75,11 +83,13 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
+@EnableConfigurationProperties([FiatClientConfigurationProperties, DynamicRoutingConfigProperties])
 @Import([PluginsAutoConfiguration, DeckPluginConfiguration, PluginWebConfiguration])
 class GateConfig extends RedisHttpSessionConfiguration {
 
   private ServiceClientProvider serviceClientProvider
 
+  @SuppressWarnings('GrDeprecatedAPIUsage')
   @Value('${server.session.timeout-in-seconds:3600}')
   void setSessionTimeout(int maxInactiveIntervalInSeconds) {
     super.setMaxInactiveIntervalInSeconds(maxInactiveIntervalInSeconds)
@@ -90,6 +100,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     this.serviceClientProvider = serviceClientProvider
   }
 
+  @SuppressWarnings('GrDeprecatedAPIUsage')
   @Autowired
   GateConfig(@Value('${server.session.timeout-in-seconds:3600}') int maxInactiveIntervalInSeconds) {
     super.setMaxInactiveIntervalInSeconds(maxInactiveIntervalInSeconds)
@@ -130,12 +141,15 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  ExecutorService executorService() {
+   ExecutorService executorService() {
     Executors.newCachedThreadPool()
   }
 
   @Autowired
   Registry registry
+
+  @Autowired
+  EurekaLookupService eurekaLookupService
 
   @Autowired
   ServiceConfiguration serviceConfiguration
@@ -149,17 +163,22 @@ class GateConfig extends RedisHttpSessionConfiguration {
    */
   @Bean
   AbstractJackson2HttpMessageConverter jsonHttpMessageConverter() {
-    return new JsonHttpMessageConverter(objectMapperBuilder.build())
+    ObjectMapper objectMapper = new ObjectMapper()
+      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .registerModule(new JavaTimeModule())
+
+    return new JsonHttpMessageConverter(objectMapper)
   }
 
   @Bean
   AbstractJackson2HttpMessageConverter yamlHttpMessageConverter() {
-    return new YamlHttpMessageConverter(objectMapperBuilder.factory(new YAMLFactory()).build())
+    return new YamlHttpMessageConverter(new YAMLMapper())
   }
 
   @Bean
-  RequestContextProvider requestContextProvider() {
-    return new AuthenticatedRequestContextProvider();
+  static RequestContextProvider requestContextProvider() {
+    return new AuthenticatedRequestContextProvider()
   }
 
   @Bean
@@ -199,6 +218,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty("services.keel.enabled")
+  KeelService keelService(OkHttpClientProvider clientProvider) {
+    createClient "keel", KeelService
+  }
+
+  @Bean
   ClouddriverServiceSelector clouddriverServiceSelector(ClouddriverService defaultClouddriverService,
                                                         DynamicConfigService dynamicConfigService,
                                                         RequestContextProvider contextProvider
@@ -216,7 +241,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       //     priority: 2
       //     origin: deck
 
-      ServiceSelector defaultSelector = new DefaultServiceSelector(
+      def defaultSelector = new DefaultServiceSelector(
         defaultClouddriverService,
         1,
         null)
@@ -228,7 +253,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       }
 
       return new ClouddriverServiceSelector(
-        new SelectableService(selectors + defaultSelector), dynamicConfigService, contextProvider)
+        new SelectableService(selectors ), dynamicConfigService, contextProvider)
     }
 
     SelectableService selectableService = createClientSelector("clouddriver", ClouddriverService)
@@ -372,6 +397,20 @@ class GateConfig extends RedisHttpSessionConfiguration {
     // handled by the `RequestTimingFilter`.
     def frb = new FilterRegistrationBean<>(new AuthenticatedRequestFilter(true, true, false, false))
     frb.order = Ordered.LOWEST_PRECEDENCE - 1
+    return frb
+  }
+
+  /**
+   * This pulls the `springSecurityFilterChain` in front of the {@link AuthenticatedRequestFilter},
+   * because the user must be authenticated through the security filter chain before their username/credentials
+   * can be pulled and forwarded in the AuthenticatedRequestFilter.
+   */
+  @Bean
+  FilterRegistrationBean securityFilterChain(
+    @Qualifier(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME) Filter securityFilter) {
+    def frb = new FilterRegistrationBean(securityFilter)
+    frb.order = 0
+    frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME
     return frb
   }
 

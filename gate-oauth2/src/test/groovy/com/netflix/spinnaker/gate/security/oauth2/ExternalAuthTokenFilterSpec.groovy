@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate
 import spock.lang.Specification
 import spock.lang.Subject
 
-import javax.servlet.FilterChain
+import jakarta.servlet.FilterChain
 
 class ExternalAuthTokenFilterSpec extends Specification {
 

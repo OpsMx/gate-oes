@@ -32,8 +32,10 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+// import
+// org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 /**
@@ -46,7 +48,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @ConditionalOnExpression("${google.iap.enabled:false}")
 @EnableConfigurationProperties(IapSecurityConfigProperties.class)
-public class IapSsoConfig extends WebSecurityConfigurerAdapter {
+public class IapSsoConfig {
 
   @Autowired AuthConfig authConfig;
 
@@ -80,7 +82,7 @@ public class IapSsoConfig extends WebSecurityConfigurerAdapter {
     long expirationTimeAllowedSkew = 30000L;
   }
 
-  @Override
+  //  @Override
   public void configure(HttpSecurity http) throws Exception {
     log.info("IAP JWT token verification is enabled.");
 
@@ -99,5 +101,10 @@ public class IapSsoConfig extends WebSecurityConfigurerAdapter {
 
     authConfig.configure(http);
     http.addFilterBefore(iapAuthenticationFilter(), BasicAuthenticationFilter.class);
+  }
+
+  //  @Override
+  public void configure(WebSecurity web) throws Exception {
+    authConfig.configure(web);
   }
 }

@@ -25,7 +25,7 @@ import retrofit.RetrofitError
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class DownstreamServicesHealthIndicatorSpec extends Specification {
   def healthCheckableService = Mock(HealthCheckableService)

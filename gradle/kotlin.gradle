@@ -19,15 +19,15 @@ apply plugin: "kotlin-spring"
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.5"
-    jvmTarget = "11"
+    languageVersion = "1.7"
+    jvmTarget = "17"
   }
 }
 
 compileTestKotlin {
   kotlinOptions {
-    languageVersion = "1.5"
-    jvmTarget = "11"
+    languageVersion = "1.7"
+    jvmTarget = "17"
   }
 }
 

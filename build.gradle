@@ -7,6 +7,13 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  tasks.withType( Copy).all {
+    duplicatesStrategy 'exclude'
+  }
 
   group = "io.spinnaker.gate"
 
@@ -34,33 +41,22 @@ allprojects {
       annotationProcessor "org.projectlombok:lombok"
       testAnnotationProcessor "org.projectlombok:lombok"
 
-      implementation "org.codehaus.groovy:groovy"
-      implementation "net.logstash.logback:logstash-logback-encoder"
+      implementation "org.apache.groovy:groovy:4.0.9"
+      implementation "net.logstash.logback:logstash-logback-encoder:4.11"
       implementation "org.jetbrains.kotlin:kotlin-reflect"
+      implementation "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.6.0"
 
       testImplementation "org.spockframework:spock-core"
       testImplementation "org.spockframework:spock-spring"
       testImplementation "org.springframework.boot:spring-boot-starter-test"
       testImplementation "org.hamcrest:hamcrest-core"
-      testRuntimeOnly "cglib:cglib-nodep"
-      testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly "cglib:cglib-nodep:3.3.0"
       testRuntimeOnly "org.objenesis:objenesis"
     }
 
     configurations.all {
       exclude group: 'javax.servlet', module: 'servlet-api'
       exclude group: 'javax.servlet', module: 'javax.servlet-api'
-    }
-  }
-
-  tasks.withType(JavaCompile).configureEach {
-    javaCompiler = javaToolchains.compilerFor {
-      languageVersion = JavaLanguageVersion.of(11)
-    }
-  }
-  tasks.withType(Test).configureEach {
-    javaLauncher = javaToolchains.launcherFor {
-      languageVersion = JavaLanguageVersion.of(17)
     }
   }
 
@@ -74,8 +70,11 @@ allprojects {
     testLogging {
       exceptionFormat = 'full'
     }
-    useJUnitPlatform()
   }
 }
 
 defaultTasks ':gate-web:run'
+
+tasks.withType(JavaExec) {
+  jvmArgs('-Xmx2048m') // Set maximum heap size to 2 GB
+}

@@ -19,15 +19,16 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "org.springframework.boot:spring-boot-starter-security"
 
-  api "com.squareup.retrofit:retrofit"
+  api "com.squareup.retrofit:retrofit:1.9.0"
 
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
-  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:converter-jackson:1.9.0"
   implementation "com.squareup.okhttp:okhttp"
-  implementation "com.squareup.okhttp:okhttp-urlconnection"
-  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.squareup.okhttp:okhttp-urlconnection:2.7.5"
+  implementation "com.squareup.okhttp:okhttp-apache:2.7.5"
+  implementation "junit:junit:4.13.2"
 
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"

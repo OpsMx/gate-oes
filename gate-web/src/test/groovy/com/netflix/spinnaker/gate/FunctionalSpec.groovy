@@ -36,8 +36,8 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.annotation.Order
+import org.springframework.security.config.annotation.web.WebSecurityConfigurer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import retrofit.RetrofitError
 import retrofit.RestAdapter;
 import retrofit.client.OkClient
@@ -175,7 +175,7 @@ class FunctionalSpec extends Specification {
   @Order(10)
   @Import(ErrorConfiguration)
   @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
-  private static class FunctionalConfiguration extends WebSecurityConfigurerAdapter {
+  private static class FunctionalConfiguration extends WebSecurityConfigurer{
 
     @Bean
     ClouddriverServiceSelector clouddriverSelector() {

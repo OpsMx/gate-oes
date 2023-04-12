@@ -15,9 +15,10 @@
  *
  */
 package com.netflix.spinnaker.gate.config
-
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.security.config.annotation.ObjectPostProcessor
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -35,22 +36,26 @@ class AuthConfigTest extends Specification {
       requestMatcher() >> requestMatcher
     }
     def authConfig = new AuthConfig(
-      Mock(PermissionRevokingLogoutSuccessHandler),
-      Mock(FiatStatus),
-      Mock(FiatPermissionEvaluator),
-      mockRequestMatcherProvider)
-    authConfig.securityDebug = false
-    authConfig.fiatSessionFilterEnabled = false
+      permissionRevokingLogoutSuccessHandler: Mock(AuthConfig.PermissionRevokingLogoutSuccessHandler),
+      securityProperties: Mock(SecurityProperties),
+      configProps: Mock(FiatClientConfigurationProperties),
+      fiatStatus: Mock(FiatStatus),
+      permissionEvaluator: Mock(FiatPermissionEvaluator),
+      requestMatcherProvider: mockRequestMatcherProvider,
+      securityDebug: false,
+      fiatSessionFilterEnabled: false,
+    )
     def httpSecurity = new HttpSecurity(
       Mock(ObjectPostProcessor),
       Mock(AuthenticationManagerBuilder),
-      [:]
+      new HashMap<Class<?>, Object>()
     )
 
     when:
     authConfig.configure(httpSecurity)
 
     then:
+    //noinspection GrDeprecatedAPIUsage
     def filtered = httpSecurity.authorizeRequests().getUrlMappings()
       .stream()
       .filter({ it -> it.requestMatcher.getPattern() == "/webhooks/**" })
@@ -69,24 +74,27 @@ class AuthConfigTest extends Specification {
       requestMatcher() >> requestMatcher
     }
     def authConfig = new AuthConfig(
-      Mock(PermissionRevokingLogoutSuccessHandler),
-      Mock(FiatStatus),
-      Mock(FiatPermissionEvaluator),
-      mockRequestMatcherProvider)
-    authConfig.securityDebug = false
-    authConfig.fiatSessionFilterEnabled = false
-    authConfig.webhookDefaultAuthEnabled = true
+      permissionRevokingLogoutSuccessHandler: Mock(AuthConfig.PermissionRevokingLogoutSuccessHandler),
+      securityProperties: Mock(SecurityProperties),
+      configProps: Mock(FiatClientConfigurationProperties),
+      fiatStatus: Mock(FiatStatus),
+      permissionEvaluator: Mock(FiatPermissionEvaluator),
+      requestMatcherProvider: mockRequestMatcherProvider,
+      securityDebug: false,
+      fiatSessionFilterEnabled: false,
+      webhookDefaultAuthEnabled: true,
+    )
     def httpSecurity = new HttpSecurity(
       Mock(ObjectPostProcessor),
       Mock(AuthenticationManagerBuilder),
-      [:]
+      new HashMap<Class<?>, Object>()
     )
 
     when:
     authConfig.configure(httpSecurity)
 
     then:
-    def filtered = httpSecurity.authorizeRequests().getUrlMappings()
+    def filtered = httpSecurity.getUrlMappings()
       .stream()
       .filter({ it -> it.requestMatcher.getPattern() == "/webhooks/**" })
       .filter( { it ->

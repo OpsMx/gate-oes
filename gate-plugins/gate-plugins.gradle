@@ -21,14 +21,16 @@ dependencies {
   implementation project(":gate-api")
   implementation project(":gate-core")
 
+  implementation "dev.minutest:minutest:1.13.0"
+  implementation "io.mockk:mockk:1.10.5"
   implementation "com.google.guava:guava"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-web"
 
-  implementation "io.swagger:swagger-annotations"
+  implementation "io.swagger:swagger-annotations:1.6.2"
 
   implementation "org.springframework:spring-web"
-  implementation "org.pf4j:pf4j-update"
+  implementation "org.pf4j:pf4j-update:+"
 }

@@ -27,11 +27,11 @@ import com.netflix.spinnaker.kork.web.interceptors.Criticality
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Request
 import okhttp3.internal.http.HttpMethod
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.net.SocketException
 import java.util.stream.Collectors
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.HttpHeaders
@@ -135,7 +135,10 @@ class ProxyController(
       val method = request.method
 
       val body = if (HttpMethod.permitsRequestBody(method) && request.contentType != null) {
-        request.reader.lines().collect(Collectors.joining(System.lineSeparator())).toRequestBody(request.contentType.toMediaType())
+        RequestBody.create(
+          request.contentType.toMediaTypeOrNull(),
+          request.reader.lines().collect(Collectors.joining(System.lineSeparator()))
+        )
       } else {
         null
       }
