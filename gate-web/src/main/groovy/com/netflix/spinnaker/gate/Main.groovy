@@ -37,7 +37,7 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
     GroovyTemplateAutoConfiguration,
     GsonAutoConfiguration,
     LdapHealthContributorAutoConfiguration,
-    GraphQLWebsocketAutoConfiguration
+//    GraphQLWebsocketAutoConfiguration
   ]
 )
 class Main {

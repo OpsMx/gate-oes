@@ -56,7 +56,7 @@ allprojects {
 
     configurations.all {
       exclude group: 'javax.servlet', module: 'servlet-api'
-      exclude group: 'javax.servlet', module: 'javax.servlet-api'
+//      exclude group: 'javax.servlet', module: 'javax.servlet-api'
     }
   }
 

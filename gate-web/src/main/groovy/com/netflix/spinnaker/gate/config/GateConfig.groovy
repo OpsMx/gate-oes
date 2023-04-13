@@ -73,6 +73,7 @@ import org.springframework.web.client.RestTemplate
 import redis.clients.jedis.JedisPool
 import retrofit.Endpoint
 import java.util.HashMap;
+import com.netflix.spectator.api.DefaultRegistry
 
 import jakarta.servlet.*
 import java.util.concurrent.ExecutorService
@@ -81,7 +82,7 @@ import java.util.concurrent.Executors
 import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
-@Configuration
+@Configuration(enforceUniqueMethods = false)
 @Slf4j
 @EnableConfigurationProperties([FiatClientConfigurationProperties, DynamicRoutingConfigProperties])
 @Import([PluginsAutoConfiguration, DeckPluginConfiguration, PluginWebConfiguration])
@@ -145,8 +146,13 @@ class GateConfig extends RedisHttpSessionConfiguration {
     Executors.newCachedThreadPool()
   }
 
-  @Autowired
-  Registry registry
+//  @Autowired
+//  Registry registry
+
+  @Bean
+  Registry getRegistry() {
+    return new DefaultRegistry();
+  }
 
   @Autowired
   EurekaLookupService eurekaLookupService
