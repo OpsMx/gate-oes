@@ -30,13 +30,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
-import com.netflix.spinnaker.gate.services.ApplicationService;
-import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
-import com.netflix.spinnaker.gate.services.internal.Front50Service;
-import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
+import com.netflix.spinnaker.gate.services.internal.*;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
@@ -68,18 +63,6 @@ public class ArtifactControllerTest {
 
   @MockBean private ClouddriverService mockClouddriverService;
 
-  @MockBean private Front50Service mockFront50Service;
-
-  @MockBean private FiatService mocFiatService;
-
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
-
-  @MockBean private PermissionService mockPermissionService;
-
-  @MockBean private ApplicationService mockApplicationService;
-
-  @MockBean private ServiceClientProvider mockServiceClientProvider;
-
   @MockBean private InputStream mockInputStream;
 
   @MockBean private TypedByteArray mockBody;
@@ -87,6 +70,16 @@ public class ArtifactControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @Autowired private WebApplicationContext webApplicationContext;
+
+  @MockBean private Front50Service front50Service;
+
+  @MockBean private OrcaServiceSelector orcaServiceSelector;
+
+  @MockBean private FiatService fiatService;
+
+  @MockBean private ExtendedFiatService extendedFiatService;
+
+  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @Test
   void TestFetch() throws Exception {

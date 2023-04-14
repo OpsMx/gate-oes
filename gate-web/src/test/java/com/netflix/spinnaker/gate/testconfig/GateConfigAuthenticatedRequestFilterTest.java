@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.testconfig;
+package com.netflix.spinnaker.gate.config;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -29,13 +29,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import ch.qos.logback.classic.Level;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
-import com.netflix.spinnaker.gate.services.ApplicationService;
-import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
-import com.netflix.spinnaker.gate.services.internal.Front50Service;
-import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
+import com.netflix.spinnaker.gate.services.internal.*;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -70,21 +65,18 @@ public class GateConfigAuthenticatedRequestFilterTest {
   private static final String LOG_MESSAGE = " logged in api: ";
   private static final String NULL_VALUE = "null";
 
-  @MockBean private ServiceClientProvider mockServiceClientProvider;
-
-  @MockBean private ClouddriverService mockClouddriverService;
-
   @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
 
-  @MockBean private ApplicationService mockApplicationService;
+  @MockBean private ClouddriverService mockClouddriverService;
+  @MockBean private Front50Service front50Service;
 
-  @MockBean private FiatService mockFiatService;
+  @MockBean private OrcaServiceSelector orcaServiceSelector;
 
-  @MockBean private PermissionService mockPermissionService;
+  @MockBean private FiatService fiatService;
 
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
+  @MockBean private ExtendedFiatService extendedFiatService;
 
-  @MockBean private Front50Service mockFront50Service;
+  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @RestController
   @RequestMapping(value = API_BASE)

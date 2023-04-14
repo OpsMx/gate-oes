@@ -1,16 +1,12 @@
 package com.netflix.spinnaker.gate;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.gate.services.ApplicationService;
-import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
-import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
+import com.netflix.spinnaker.gate.services.internal.*;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,22 +18,33 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
 public class MainSpec {
-  @MockBean private ClouddriverService mockClouddriverService;
 
-  @MockBean private ServiceClientProvider serviceClientProvider;
+  @Autowired ServiceClientProvider serviceClientProvider;
 
-  @MockBean private ApplicationService mockApplicationService;
+  @MockBean private ClouddriverService clouddriverService;
 
-  @MockBean private PermissionService mockPermissionService;
+  @MockBean private ClouddriverServiceSelector clouddriverServiceSelector;
 
-  @MockBean private FiatService mockFiatService;
+  @MockBean private Front50Service front50Service;
 
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
+  @MockBean private OrcaServiceSelector orcaServiceSelector;
 
-  @MockBean private Front50Service mockFront50Service;
+  @MockBean private EchoService echoService;
+
+  @MockBean private FiatService fiatService;
+
+  @MockBean private ExtendedFiatService extendedFiatService;
+
+  @MockBean private RoscoService roscoService;
+
+  @MockBean private RoscoServiceSelector roscoServiceSelector;
+
+  @MockBean private KeelService keelService;
+
+  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @Test
   public void startupTest() {
-    assertThat(serviceClientProvider != null);
+    assert serviceClientProvider != null;
   }
 }

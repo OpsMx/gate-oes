@@ -19,9 +19,11 @@ package com.netflix.spinnaker.gate.plugins.test
 import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.plugins.GateApiExtension
 import com.netflix.spinnaker.gate.plugins.GatePlugin
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.internal.PluginJar
 import com.netflix.spinnaker.kork.plugins.tck.PluginsTckFixture
+import io.mockk.impl.annotations.MockK
 import java.io.File
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc

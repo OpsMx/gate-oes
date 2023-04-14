@@ -15,18 +15,28 @@
  */
 package com.netflix.spinnaker.gate.security.basic
 
+import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.config.GateConfig
 import com.netflix.spinnaker.gate.config.RedisTestConfig
+import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator
 import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.gate.services.internal.RoscoService
+import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
@@ -57,6 +67,36 @@ class BasicAuthSpec extends Specification {
   @Autowired
   MockMvc mockMvc
 
+  @MockBean
+  private FiatService fiatService
+
+  @MockBean
+  private ExtendedFiatService extendedFiatService
+
+  @MockBean
+  private ClouddriverService clouddriverService
+
+  @MockBean
+  ClouddriverServiceSelector clouddriverServiceSelector
+
+  @MockBean
+  private Front50Service front50Service
+
+  @MockBean
+  private OrcaServiceSelector orcaServiceSelector
+
+  @MockBean
+  private EchoService echoService;
+
+  @MockBean
+  private RoscoService roscoService;
+
+  @MockBean
+  RoscoServiceSelector roscoServiceSelector
+
+  @MockBean
+  private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+
   def "should do basic authentication"() {
     setup:
     Cookie sessionCookie = null
@@ -76,7 +116,7 @@ class BasicAuthSpec extends Specification {
       .cookie(sessionCookie))
       .andDo(print())
       .andExpect(status().is(302))
-      .andExpect(redirectedUrl("http://localhost/credentials"))
+      .andExpect(redirectedUrl("http://localhost/credentials?continue"))
       .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))

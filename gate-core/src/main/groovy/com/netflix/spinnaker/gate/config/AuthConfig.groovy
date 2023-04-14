@@ -29,14 +29,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.core.Authentication
+import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.stereotype.Component
 
 import jakarta.servlet.Filter
@@ -79,19 +82,21 @@ class AuthConfig {
   void configure(HttpSecurity http) throws Exception {
     // @formatter:off
     http
-      .requestMatcher(requestMatcherProvider.requestMatcher())
-      .authorizeRequests()
-        .antMatchers("/error").permitAll()
-        .antMatchers('/favicon.ico').permitAll()
-        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-        .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
-        .antMatchers('/auth/user').permitAll()
-        .antMatchers('/plugins/deck/**').permitAll()
-        .antMatchers(HttpMethod.POST, '/webhooks/**').permitAll()
-        .antMatchers(HttpMethod.POST, '/notifications/callbacks/**').permitAll()
-        .antMatchers(HttpMethod.POST, '/managed/notifications/callbacks/**').permitAll()
-        .antMatchers('/health').permitAll()
-        .antMatchers('/**').authenticated()
+      .authorizeHttpRequests((authz) ->
+        authz
+          .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+          .requestMatchers(new AntPathRequestMatcher('/favicon.ico')).permitAll()
+          .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.OPTIONS, "/**")).permitAll()
+          .requestMatchers(new AntPathRequestMatcher(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL)).permitAll()
+          .requestMatchers(new AntPathRequestMatcher('/auth/user')).permitAll()
+          .requestMatchers(new AntPathRequestMatcher('/plugins/deck/**')).permitAll()
+          .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, '/webhooks/**')).permitAll()
+          .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, '/notifications/callbacks/**')).permitAll()
+          .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, '/managed/notifications/callbacks/**')).permitAll()
+          .requestMatchers(new AntPathRequestMatcher('/health')).permitAll()
+          .requestMatchers(new AntPathRequestMatcher('/**')).authenticated()
+      )
+
     if (fiatSessionFilterEnabled) {
       Filter fiatSessionFilter = new FiatSessionFilter(
         fiatSessionFilterEnabled,
@@ -102,7 +107,10 @@ class AuthConfig {
     }
 
     if (webhookDefaultAuthEnabled) {
-      http.authorizeRequests().antMatchers(HttpMethod.POST, '/webhooks/**').authenticated()
+      http.authorizeHttpRequests(
+        (requests) ->
+          requests
+            .requestMatchers(new AntPathRequestMatcher(HttpMethod.POST, "/webhooks/**")).authenticated());
     }
 
     http.logout()

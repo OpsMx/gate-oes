@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import groovy.json.JsonSlurper
+import jakarta.servlet.ServletException
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
@@ -92,7 +93,7 @@ class ApplicationControllerSpec extends Specification {
     mockMvc.perform(get(endpoint))
 
     then:
-    NestedServletException ex = thrown()
+    ServletException ex = thrown()
     ex.message.contains('Pipeline config (id: some-fake-pipeline) not found for Application (id: true-app)')
 
     where:
@@ -142,7 +143,7 @@ class ApplicationControllerSpec extends Specification {
     mockMvc.perform(get(endpoint))
 
     then:
-    NestedServletException ex = thrown()
+    ServletException ex = thrown()
     ex.message.contains('Strategy config (id: some-fake-strategy) not found for Application (id: true-app)')
 
     where:
