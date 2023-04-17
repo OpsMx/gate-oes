@@ -5,15 +5,13 @@ on:
   push:
     branches:
     - OES-1.30.x-master-adhoc
-
+ 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
   CONTAINER_REGISTRY: quay.io/opsmxpublic
 
-
 jobs:
   branch-build:
-    if: startsWith(github.repository, ‘opsmx/‘)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,28 +24,26 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           java-version: 17
-          distribution: 'zulu'
+          distribution: 'temurin'
           cache: 'gradle'
       - name: Prepare build variables
         id: build_variables
         run: |
           echo ::set-output name=REPO::ubi8-gate-cve
           echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
-      - name: Build
-        env:
-          ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
-        run: ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test
       - name: Login to Quay
-        if: startsWith(github.repository, ‘opsmx/‘)
         uses: docker/login-action@v1
         # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
         with:
           registry: quay.io
-          username: ksrinimba
-          password: ${{ secrets.GAR_JSON_KEY }}
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_KEY }}
+      - name: Build
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
+        run: ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+
       - name: dockerBuildpush
-        # Only run this on repositories in the 'spinnaker' org, not on forks.
-        if: startsWith(github.repository, ‘opsmx/‘)
         uses: docker/build-push-action@v2
         with:
           context: .
