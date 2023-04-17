@@ -1,0 +1,26 @@
+FROM alpine:3.16 AS build
+RUN apk add --update \
+    openjdk11 \
+    && rm -rf /var/cache/apk
+LABEL maintainer="sig-platform@spinnaker.io"
+ENV GRADLE_USER_HOME /workspace/.gradle
+ENV GRADLE_OPTS -Xmx4g
+WORKDIR /build
+COPY . /build
+RUN ./gradlew --no-daemon gate-web:installDist -x test
+
+
+FROM quay.io/opsmxpublic/image-base-java-ubi8-minimal:latest AS package
+LABEL maintainer="info@opsmx.io"
+
+ARG TARGETARCH
+
+RUN  microdnf install --setopt=tsflags=nodocs openssh-clients && \
+  groupadd -g 10111 spinnaker && \
+  useradd -g spinnaker -u 10111 spinnaker && \
+  mkdir -p /opt/gate/plugins && chown -R spinnaker:spinnaker /opt/gate/plugins
+
+
+COPY --from=build /build/gate-web/build/install/gate /opt/gate
+USER spinnaker
+CMD ["/opt/gate/bin/gate"]
