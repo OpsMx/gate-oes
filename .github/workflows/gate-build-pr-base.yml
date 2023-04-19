@@ -27,11 +27,6 @@ jobs:
           java-version: 17
           distribution: 'temurin'
           cache: 'gradle'
-      - name: Prepare build variables
-        id: build_variables
-        run: |
-          echo ::set-output name=REPO::ubi8-gate-cve
-          
       - name: Login to Quay
         uses: docker/login-action@v1
         # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
@@ -42,21 +37,23 @@ jobs:
       - name: Build_base_branch_code
         if: github.event_name == 'pull_request'
         run: |
+           echo ::set-output name=REPO::ubi8-gate-cve
+           
            git fetch origin ${{ github.event.pull_request.base.ref }}
-                
+              
            echo "::set-env name=BRANCH_NAME::$(echo ${GITHUB_HEAD_REF})"
+           
            echo ${GITHUB_HEAD_REF}
            
            git checkout ${GITHUB_HEAD_REF}
+     
+           git log -1
            
-           git branch
-           git log -2
-           
-           #git rev-parse --short HEAD
+           git rev-parse --short HEAD
            
            echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
            
-           #./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+           ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
       - name: dockerBuildpush
         uses: docker/build-push-action@v2
         with:
