@@ -1,0 +1,61 @@
+name: Build Base Branch Code on PR Raised
+
+
+on:
+  pull_request:
+    branches:
+      - OES-1.30.x-master-adhoc
+    types: [opened, reopened, synchronize]
+ 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
+  CONTAINER_REGISTRY: quay.io/opsmxpublic
+
+jobs:
+  branch-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Prepare build variables
+        id: build_variables
+        run: |
+          echo ::set-output name=REPO::ubi8-gate-cve
+          
+      - name: Login to Quay
+        uses: docker/login-action@v1
+        # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_KEY }}
+      - name: Build_base_branch_code
+        run: |
+           git fetch origin ${{ github.event.pull_request.base.ref }}
+           git checkout ${{ github.event.pull_request.base.ref }}
+           
+           git rev-parse --short HEAD
+           
+           echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
+           
+           ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+      - name: dockerBuildpush
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.3.2-rc1
+          file: docker/ubi8/Dockerfile
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.Build_base_branch_code.outputs.VERSION }}" 
