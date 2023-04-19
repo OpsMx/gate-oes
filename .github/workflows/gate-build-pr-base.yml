@@ -63,4 +63,4 @@ jobs:
           file: docker/ubi8/Dockerfile
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.Build_base_branch_code.outputs.VERSION }}" 
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.Build_base_branch_code.outputs.REPO }}:${{ steps.Build_base_branch_code.outputs.VERSION }}" 
