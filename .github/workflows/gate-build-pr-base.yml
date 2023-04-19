@@ -66,21 +66,4 @@ jobs:
           push: true
           tags: |
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}" 
-      - name: Approve pull request
-        if: ${{ github.event.pull_request.labels[0].name == 'auto-merge' }}
-        run: |
-          TOKEN="${{ secrets.GIT_TOKEN }}"
-          PULL_REQUEST_NUMBER="${{ github.event.pull_request.number }}"
-          API_URL="https://api.github.com"
-          API_HEADER="Accept: application/vnd.github.v3+json"
-          API_HEADER_AUTH="Authorization: token ${TOKEN}"
-          curl --request POST --url "$API_URL/repos/$GITHUB_REPOSITORY/pulls/$PULL_REQUEST_NUMBER/reviews" --header "$API_HEADER" --header "$API_HEADER_AUTH" --data '{"event":"APPROVE"}'
-      - name: Merge pull request
-        if: ${{ github.event.pull_request.labels[0].name == 'auto-merge' }}
-        run: |
-          TOKEN="${{ secrets.GITHUB_TOKEN }}"
-          PULL_REQUEST_NUMBER="${{ github.event.pull_request.number }}"
-          API_URL="https://api.github.com"
-          API_HEADER="Accept: application/vnd.github.v3+json"
-          API_HEADER_AUTH="Authorization: token ${TOKEN}"
-          curl --request PUT --url "$API_URL/repos/$GITHUB_REPOSITORY/pulls/$PULL_REQUEST_NUMBER/merge" --header "$API_HEADER" --header "$API_HEADER_AUTH" --data '{"merge_method":"squash"}'
+      
