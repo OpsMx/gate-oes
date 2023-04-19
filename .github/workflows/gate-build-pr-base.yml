@@ -35,12 +35,13 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_KEY }}
       - name: Build_base_branch_code
+        id: build_variables
         if: github.event_name == 'pull_request'
         run: |
            
            git fetch origin ${{ github.event.pull_request.base.ref }}
-              
-           #echo "::set-env name=BRANCH_NAME::$(echo ${GITHUB_HEAD_REF})"
+           
+           echo "This PR raised by ${GITHUB_ACTOR}"
            
            echo ${GITHUB_HEAD_REF}
            
@@ -50,6 +51,7 @@ jobs:
            
            git rev-parse --short HEAD
            
+           echo ::set-output name=BRANCH_NAME::$(echo ${GITHUB_HEAD_REF})
            echo ::set-output name=REPO::ubi8-gate-cve
            echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
            
@@ -63,4 +65,4 @@ jobs:
           file: docker/ubi8/Dockerfile
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.Build_base_branch_code.outputs.REPO }}:${{ steps.Build_base_branch_code.outputs.VERSION }}" 
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}" 
