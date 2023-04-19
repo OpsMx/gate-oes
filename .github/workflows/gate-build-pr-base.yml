@@ -44,11 +44,14 @@ jobs:
            git fetch origin ${{ github.event.pull_request.base.ref }}
            git checkout ${{ github.event.pull_request.base.ref }}
            
-           git rev-parse --short HEAD
+           git branch
+           git log -2
+           
+           #git rev-parse --short HEAD
            
            echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
            
-           ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+           #./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
       - name: dockerBuildpush
         uses: docker/build-push-action@v2
         with:
