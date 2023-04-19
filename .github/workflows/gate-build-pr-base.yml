@@ -40,9 +40,14 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_KEY }}
       - name: Build_base_branch_code
+        if: github.event_name == 'pull_request'
         run: |
            git fetch origin ${{ github.event.pull_request.base.ref }}
-           git checkout ${{ github.event.pull_request.base.ref }}
+                
+           echo "::set-env name=BRANCH_NAME::$(echo ${GITHUB_HEAD_REF})"
+           echo ${GITHUB_HEAD_REF}
+           
+           git checkout ${GITHUB_HEAD_REF}
            
            git branch
            git log -2
