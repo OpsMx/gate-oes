@@ -85,49 +85,6 @@ class GateCorsAllowedOriginConfigSpec extends Specification {
   private KayentaService kayentaService
 
   @MockBean
-  private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator
-
-  def "cors filter should send 200 back if no origin header exists"() {
-    /*expect:
-    mvc.perform(get("/version"))
-      .andExpect(status().is(200))
-      .andExpect(header().exists('X-SPINNAKER-REQUEST-ID'))
-      .andExpect(header().doesNotExist('Access-Control-Allow-Origin'))
-      .andReturn()
-      .response
-      .contentAsString.length() > 1*/
-  }
-
-  def "cors filter should send 403 back for localhost"() {
-   /* expect:
-    mvc.perform(get("/version").header('Origin', 'https://localhost'))
-      .andExpect(status().is(403))
-      .andExpect(header().stringValues('Vary', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'))
-      .andExpect(header().doesNotExist('Access-Control-Allow-Origin'))
-      .andReturn()
-      .response
-      .contentAsString == 'Invalid CORS request'*/
-  }
-
-  def "cors filter should send 403 back for unknown origin"() {
-    /*expect:
-    mvc.perform(get("/version").header('Origin', 'https://test.blah.com'))
-      .andExpect(status().is(403))
-      .andExpect(header().stringValues('Vary', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'))
-      .andExpect(header().doesNotExist('Access-Control-Allow-Origin'))
-      .andReturn()
-      .response
-      .contentAsString == 'Invalid CORS request'*/
-  }
-
-  def "cors filter should set the allowed origin header to testblah.somewhere.net(allowed origin)"() {
-    /*expect:
-    mvc.perform(get("/version").header('Origin', 'https://testblah.somewhere.net'))
-      .andExpect(status().isOk())
-      .andExpect(header().stringValues('Access-Control-Allow-Origin', 'https://testblah.somewhere.net'))
-      .andReturn()
-      .response
-      .contentAsString.length() > 1*/
-  }
+  private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
 }

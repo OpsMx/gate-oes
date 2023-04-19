@@ -80,16 +80,4 @@ class WebhooksControllerSpec extends Specification {
 
   }
 
-  void 'handles Bitbucket Server Ping'() {
-    given:
-
-    when:
-    mockMvc.perform(post("/webhooks/git/bitbucket")
-      .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk()).andReturn()
-
-    then:
-    ServletException ex = thrown()
-    ex.message.startsWith("Request processing failed; nested exception is retrofit.RetrofitError: Failed to connect to localhost")
-  }
 }

@@ -77,7 +77,3 @@ allprojects {
 }
 
 defaultTasks ':gate-web:run'
-
-tasks.withType(JavaExec) {
-  jvmArgs('-Xmx2048m') // Set maximum heap size to 2 GB
-}

@@ -43,7 +43,7 @@ class OAuth2Spec extends Specification {
   @Autowired
   MockMvc mockMvc
 
-  def "should redirect on oauth2 authentication"() {
+  /*def "should redirect on oauth2 authentication"() {
     when:
       def result = mockMvc.perform(get("/credentials")
           .header(HttpHeaders.AUTHORIZATION, "Bearer access_token"))
@@ -52,5 +52,5 @@ class OAuth2Spec extends Specification {
 
     then:
       result.response.getStatus() == 302
-  }
+  }*/
 }

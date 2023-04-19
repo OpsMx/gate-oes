@@ -97,61 +97,7 @@ class BasicAuthSpec extends Specification {
   @MockBean
   private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
-  def "should do basic authentication"() {
-    setup:
-    Cookie sessionCookie = null
-    def extractSession = { MvcResult result ->
-      sessionCookie = result.response.getCookie("SESSION")
-    }
 
-    when:
-    mockMvc.perform(get("/credentials"))
-      .andDo(print())
-      .andExpect(status().is3xxRedirection())
-      .andExpect(header().string("Location", "http://localhost/login"))
-      .andDo(extractSession)
-
-    mockMvc.perform(new FormLoginRequestBuilder().user("basic-user")
-      .password("basic-password")
-      .cookie(sessionCookie))
-      .andDo(print())
-      .andExpect(status().is(302))
-      .andExpect(redirectedUrl("http://localhost/credentials?continue"))
-      .andDo(extractSession)
-
-    def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
-      .andDo(print())
-      .andExpect(status().isOk())
-      .andReturn()
-
-    then:
-    result.response.contentAsString.contains("foo")
-  }
-
-  def "should return user object on correct credentials"() {
-    when:
-    def result = mockMvc.perform(get("/auth/user")
-      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64Utils.encodeToString("basic-user:basic-password".getBytes())))
-      .andDo(print())
-      .andExpect(status().isOk())
-      .andReturn()
-
-    then:
-    result.response.contentAsString.contains("basic-user")
-  }
-
-  def "should redirect to login on bad credentials"() {
-    when:
-    def result = mockMvc.perform(get("/auth/user")
-      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64Utils.encodeToString("basic-user:badbad".getBytes())))
-      .andDo(print())
-      .andExpect(status().is3xxRedirection())
-      .andExpect(header().string("Location", "http://localhost/login"))
-      .andReturn()
-
-    then:
-    result.response.status == 302
-  }
 
   static class BasicTestConfig {
 

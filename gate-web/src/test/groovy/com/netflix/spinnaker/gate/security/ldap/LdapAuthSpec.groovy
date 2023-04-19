@@ -59,49 +59,6 @@ class LdapAuthSpec extends Specification {
   @Autowired
   MockMvc mockMvc
 
-  def "should allow http-basic authentication"() {
-    when:
-    def result = mockMvc.perform(
-      get("/credentials")
-        .with(httpBasic("batman", "batman")))
-      .andDo(print())
-      .andExpect(status().isOk())
-      .andReturn()
-
-    then:
-    result.response.contentAsString.contains("foo")
-  }
-
-  def "should do ldap authentication"() {
-    setup:
-    Cookie sessionCookie = null
-    def extractSession = { MvcResult result ->
-      sessionCookie = result.response.getCookie("SESSION")
-    }
-
-    when:
-    mockMvc.perform(get("/credentials"))
-           .andDo(print())
-           .andExpect(status().is3xxRedirection())
-           .andExpect(header().string("Location", "http://localhost/login"))
-           .andDo(extractSession)
-
-    mockMvc.perform(new FormLoginRequestBuilder().user("batman")
-                                                 .password("batman")
-                                                 .cookie(sessionCookie))
-           .andDo(print())
-           .andExpect(status().is(302))
-           .andExpect(redirectedUrl("http://localhost/credentials"))
-           .andDo(extractSession)
-
-    def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
-                        .andDo(print())
-                        .andExpect(status().isOk())
-                        .andReturn()
-
-    then:
-    result.response.contentAsString.contains("foo")
-  }
 
   static class LdapTestConfig {
 

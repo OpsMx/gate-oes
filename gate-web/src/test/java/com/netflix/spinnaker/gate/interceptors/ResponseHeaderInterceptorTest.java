@@ -26,12 +26,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
-import com.netflix.spinnaker.gate.services.ApplicationService;
-import com.netflix.spinnaker.gate.services.PermissionService;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
-import com.netflix.spinnaker.gate.services.internal.Front50Service;
-import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.EnumSet;
@@ -60,19 +54,19 @@ public class ResponseHeaderInterceptorTest {
   private static final String TEST_EXECUTION_TYPE = "Test-Execution-Type";
   private static final String TEST_APPLICATION = "Test-Application";
 
+  @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
+
   @MockBean private ClouddriverService mockClouddriverService;
 
-  @MockBean private ServiceClientProvider mockServiceClientProvider;
+  @MockBean private Front50Service front50Service;
 
-  @MockBean private ApplicationService mockApplicationService;
+  @MockBean private OrcaServiceSelector orcaServiceSelector;
 
-  @MockBean private PermissionService mockPermissionService;
+  @MockBean private FiatService fiatService;
 
-  @MockBean private FiatService mockFiatService;
+  @MockBean private ExtendedFiatService extendedFiatService;
 
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
-
-  @MockBean private Front50Service mockFront50Service;
+  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @RestController
   @RequestMapping(value = API_BASE)
@@ -84,7 +78,7 @@ public class ResponseHeaderInterceptorTest {
   private MockMvc mockMvc;
 
   @BeforeEach
-  private void setup() {
+  public void setup() {
     AuthenticatedRequest.clear();
   }
 
@@ -100,7 +94,7 @@ public class ResponseHeaderInterceptorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @BeforeEach
-    private void setup() {
+    public void setup() {
       mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -171,7 +165,7 @@ public class ResponseHeaderInterceptorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @BeforeEach
-    private void setup() {
+    public void setup() {
       mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -211,7 +205,7 @@ public class ResponseHeaderInterceptorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @BeforeEach
-    private void setup() {
+    public void setup() {
       mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
