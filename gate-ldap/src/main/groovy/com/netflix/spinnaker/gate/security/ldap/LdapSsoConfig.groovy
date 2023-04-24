@@ -44,7 +44,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
-@Configuration
+@Configuration(enforceUniqueMethods = false)
 @SpinnakerAuthConfig
 @EnableWebSecurity
 class LdapSsoConfig {
