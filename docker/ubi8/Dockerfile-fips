@@ -1,0 +1,44 @@
+FROM registry.access.redhat.com/ubi8/ubi:8.7 as java-builder
+LABEL maintainer="OpsMx"
+
+ARG JAVA_PACKAGE=java-17-openjdk-jmods
+RUN yum -y update && yum -y install --nodocs ${JAVA_PACKAGE}
+
+# Build a custom JRE.
+# For now, we will include all modules.  We could try to remove the ones
+# we don't need to reduce image size and security attack surface.
+WORKDIR /jrebuild
+RUN java --list-modules | cut -d'@' -f1 > modules
+RUN jlink --output runtime --add-modules `paste -sd, - < modules` --compress 2 --vm server
+
+# Build a minimal base image with our custom Java installed.
+
+FROM registry.access.redhat.com/ubi8/ubi:8.7 AS java-base
+LABEL maintainer="OpsMx"
+COPY --from=java-builder /jrebuild/runtime /opsmx-java-runtime
+ARG OPSMXUSER=1001
+ENV JAVA_HOME=/opsmx-java-runtime \
+    PATH=${PATH}:/opsmx-java-runtime/bin \
+    WORK_DIR=/opsmx/workdir \
+    CONF_DIR=/opsmx/conf
+
+# Enabling fips mode
+RUN fips-mode-setup --enable
+
+# Setting crypto policies to FIPS
+RUN update-crypto-policies --set FIPS
+
+COPY ./gate-web/build/install/gate /opt/gate
+#RUN yum -y install java-17-openjdk-devel wget vim curl net-tools nettle
+
+RUN yum -y remove  tar wget 
+RUN yum -y remove clean all && rm -rf /var/cache
+
+RUN adduser spinnaker
+RUN mkdir -p /opt/gate/plugins && mkdir -p /opt/spinnaker/plugins
+RUN chown -R spinnaker:spinnaker /opt/spinnaker
+
+RUN chmod -R 777 /opt/gate/plugins/
+RUN chown -R spinnaker:spinnaker /opt/
+USER spinnaker
+CMD ["/opt/gate/bin/gate"]
