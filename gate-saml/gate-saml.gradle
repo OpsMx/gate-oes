@@ -4,11 +4,16 @@ dependencies{
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-security"
-  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spectator:spectator-api:1.5.4"
+  implementation "org.apache.velocity:velocity-engine-core:2.3"
+  implementation("org.apache.santuario:xmlsec:3.0.2"){
+    force(true)
+  }
   implementation 'org.springframework:spring-context'
   implementation 'org.springframework.session:spring-session-core'
   implementation 'org.springframework.boot:spring-boot-autoconfigure'
-
+  implementation("org.owasp.esapi:esapi:2.5.2.0")
+  implementation("org.bouncycastle:bcprov-ext-jdk15on:1.70")
   implementation "org.springframework.security.extensions:spring-security-saml2-core:1.0.9.RELEASE"
-  implementation "org.springframework.security.extensions:spring-security-saml-dsl-core:+"
+  implementation "org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE"
 }
