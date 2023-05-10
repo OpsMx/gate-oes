@@ -19,9 +19,10 @@ package com.netflix.spinnaker.gate.security
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 @ConditionalOnBean(annotation = SpinnakerAuthConfig.class)
 class SpringSecurityAnnotationConfig {
 }
