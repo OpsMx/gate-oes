@@ -31,7 +31,7 @@ RUN update-crypto-policies --set FIPS
 COPY ./gate-web/build/install/gate /opt/gate
 #RUN yum -y install java-17-openjdk-devel wget vim curl net-tools nettle
 
-RUN yum -y remove  tar wget 
+RUN yum -y remove  tar  
 RUN yum -y remove clean all && rm -rf /var/cache
 
 RUN adduser spinnaker
