@@ -4,7 +4,7 @@ name: Build Base Branch Code on PR Raised
 on:
   pull_request:
     branches:
-      - OES-1.30.x-master-adhoc
+      - OES-1.30.x
     types: [opened, reopened, synchronize]
  
 env:
