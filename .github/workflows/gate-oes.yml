@@ -4,7 +4,7 @@ on:
   workflow_call:
   push:
     branches:
-    - OES-1.30.x-master-adhoc
+    - OES-1.30.x
  
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
