@@ -142,11 +142,11 @@ class SamlSsoConfig {
   @Autowired
   SAMLSecurityConfigProperties samlSecurityConfigProperties
 
-  @Autowired
-  SAMLUserDetailsService samlUserDetailsService
+
+  SAMLUserDetailsService samlUserDetailsService = samlUserDetailsService()
 
   @Bean
-  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  SecurityFilterChain configure(HttpSecurity http) throws Exception {
     //We need our session cookie to come across when we get redirected back from the IdP:
     defaultCookieSerializer.setSameSite(null)
     authConfig.configure(http)
@@ -175,8 +175,10 @@ class SamlSsoConfig {
           .keyname(samlSecurityConfigProperties.keyStoreAliasName)
           .keyPassword(samlSecurityConfigProperties.keyStorePassword)
 
-      saml.init(http)
+//      saml.init(http)
       initSignatureDigest() // Need to be after SAMLConfigurer initializes the global SecurityConfiguration
+      http.apply(saml).init(http)
+    return http.build()
 
     // @formatter:on
 
@@ -213,7 +215,6 @@ class SamlSsoConfig {
     rememberMeServices
   }
 
-  @Bean
   SAMLUserDetailsService samlUserDetailsService() {
     // TODO(ttomsu): This is a NFLX specific user extractor. Make a more generic one?
     new SAMLUserDetailsService() {
@@ -254,8 +255,8 @@ class SamlSsoConfig {
         }
 
         def id = registry
-            .createId("fiat.login")
-            .withTag("type", "saml")
+          .createId("fiat.login")
+          .withTag("type", "saml")
 
         try {
           retrySupport.retry({ ->
@@ -266,12 +267,12 @@ class SamlSsoConfig {
           id = id.withTag("success", true).withTag("fallback", "none")
         } catch (Exception e) {
           log.debug(
-              "Unsuccessful SAML authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
-              username,
-              roles.size(),
-              roles,
-              fiatClientConfigurationProperties.legacyFallback,
-              e
+            "Unsuccessful SAML authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+            username,
+            roles.size(),
+            roles,
+            fiatClientConfigurationProperties.legacyFallback,
+            e
           )
           id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
 
