@@ -175,9 +175,9 @@ class SamlSsoConfig {
           .keyname(samlSecurityConfigProperties.keyStoreAliasName)
           .keyPassword(samlSecurityConfigProperties.keyStorePassword)
 
-//      saml.init(http)
+      saml.init(http)
       initSignatureDigest() // Need to be after SAMLConfigurer initializes the global SecurityConfiguration
-      http.apply(saml).init(http)
+//      http.apply(saml).init(http)
     return http.build()
 
     // @formatter:on
