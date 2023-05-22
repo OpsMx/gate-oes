@@ -102,6 +102,7 @@ class PipelineController {
     @RequestBody Map pipeline,
     @RequestParam(value = "staleCheck", required = false, defaultValue = "false")
       Boolean staleCheck) {
+    log.info("**** /pipelines - savePipeline() - application : {}, name: {}",pipeline.get('application'), pipeline.get("name") );
     def operation = [
       description: (String) "Save pipeline '${pipeline.get("name") ?: "Unknown"}'",
       application: pipeline.get('application'),
@@ -114,15 +115,23 @@ class PipelineController {
         ]
       ]
     ]
-    def result = taskService.createAndWaitForCompletion(operation)
-    String resultStatus = result.get("status")
+    try {
+      def result = taskService.createAndWaitForCompletion(operation)
+      String resultStatus = result.get("status")
+      log.info("**** after taskService.createAndWaitForCompletion(operation), resultStatus: {}", resultStatus)
 
-    if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
-      String exception = result.variables.find { it.key == "exception" }?.value?.details?.errors?.getAt(0)
-      throw new PipelineException(
-        exception ?: "Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})"
-      )
+      if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
+        String exception = result.variables.find { it.key == "exception" }?.value?.details?.errors?.getAt(0)
+        log.info("**** Pipeline save operation did not succeed!!!!!!!!")
+        throw new PipelineException(
+          exception ?: "Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})"
+        )
+      }
+    }catch (Exception e){
+      log.error("**** Error occurred while performing save pipeline operation. {}", e.getMessage())
+      throw new PipelineException(e.getMessage());
     }
+
   }
 
   @ApiOperation(value = "Rename a pipeline definition")
