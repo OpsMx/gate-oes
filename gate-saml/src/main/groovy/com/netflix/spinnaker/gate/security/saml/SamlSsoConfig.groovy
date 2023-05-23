@@ -47,6 +47,10 @@ import org.springframework.security.extensions.saml2.config.SAMLConfigurer
 import org.springframework.security.saml.websso.WebSSOProfileConsumerImpl
 import org.springframework.security.saml.SAMLCredential
 import org.springframework.security.saml.userdetails.SAMLUserDetailsService
+import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.RememberMeServices
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices
@@ -146,42 +150,54 @@ class SamlSsoConfig {
   SAMLUserDetailsService samlUserDetailsService = samlUserDetailsService()
 
   @Bean
-  SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  SecurityFilterChain samlFilterChain(HttpSecurity http) throws Exception {
     //We need our session cookie to come across when we get redirected back from the IdP:
     defaultCookieSerializer.setSameSite(null)
     authConfig.configure(http)
 
-    http
-      .rememberMe()
-        .rememberMeServices(rememberMeServices(userDetailsService()))
+//    http
+//      .rememberMe()
+//        .rememberMeServices(rememberMeServices(userDetailsService()))
 
     // @formatter:off
-      SAMLConfigurer saml = saml()
-      saml
-        .userDetailsService(samlUserDetailsService)
-        .identityProvider()
-          .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
-          .discoveryEnabled(false)
-          .and()
-        .webSSOProfileConsumer(getWebSSOProfileConsumerImpl())
-        .serviceProvider()
-          .entityId(samlSecurityConfigProperties.issuerId)
-          .protocol(samlSecurityConfigProperties.redirectProtocol)
-          .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
-          .basePath(samlSecurityConfigProperties.redirectBasePath)
-          .keyStore()
-          .storeFilePath(samlSecurityConfigProperties.keyStore)
-          .password(samlSecurityConfigProperties.keyStorePassword)
-          .keyname(samlSecurityConfigProperties.keyStoreAliasName)
-          .keyPassword(samlSecurityConfigProperties.keyStorePassword)
+//      SAMLConfigurer saml = saml()
+//      saml
+//        .userDetailsService(samlUserDetailsService)
+//        .identityProvider()
+//          .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
+//          .discoveryEnabled(false)
+//          .and()
+//        .webSSOProfileConsumer(getWebSSOProfileConsumerImpl())
+//        .serviceProvider()
+//          .entityId(samlSecurityConfigProperties.issuerId)
+//          .protocol(samlSecurityConfigProperties.redirectProtocol)
+//          .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
+//          .basePath(samlSecurityConfigProperties.redirectBasePath)
+//          .keyStore()
+//          .storeFilePath(samlSecurityConfigProperties.keyStore)
+//          .password(samlSecurityConfigProperties.keyStorePassword)
+//          .keyname(samlSecurityConfigProperties.keyStoreAliasName)
+//          .keyPassword(samlSecurityConfigProperties.keyStorePassword)
 
-//      saml.init(http)
+    http.saml2Login(saml2 -> saml2.relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()))
+
       initSignatureDigest() // Need to be after SAMLConfigurer initializes the global SecurityConfiguration
-      http.apply(saml).init(http)
+
     return http.build()
 
     // @formatter:on
 
+  }
+
+
+  RelyingPartyRegistrationRepository relyingPartyRegistrationRepository(){
+
+    RelyingPartyRegistration registration = RelyingPartyRegistrations
+      .fromMetadataLocation(samlSecurityConfigProperties.metadataUrl).entityId(samlSecurityConfigProperties.issuerId)
+      .registrationId("spinnakerSaml2Registration")
+      .build()
+
+    return new InMemoryRelyingPartyRegistrationRepository(registration)
   }
 
   private void initSignatureDigest() {
@@ -207,13 +223,13 @@ class SamlSsoConfig {
     return profileConsumer;
   }
 
-  @Bean
-  public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
-    TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("password", userDetailsService)
-    rememberMeServices.setCookieName("cookieName")
-    rememberMeServices.setParameter("rememberMe")
-    rememberMeServices
-  }
+//  @Bean
+//  public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
+//    TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("password", userDetailsService)
+//    rememberMeServices.setCookieName("cookieName")
+//    rememberMeServices.setParameter("rememberMe")
+//    rememberMeServices
+//  }
 
   SAMLUserDetailsService samlUserDetailsService() {
     // TODO(ttomsu): This is a NFLX specific user extractor. Make a more generic one?
