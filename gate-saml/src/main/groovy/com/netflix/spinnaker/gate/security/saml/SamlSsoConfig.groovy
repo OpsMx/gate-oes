@@ -37,16 +37,21 @@ import org.springframework.boot.autoconfigure.web.ServerProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.converter.RsaKeyConverters
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.extensions.saml2.config.SAMLConfigurer
 import org.springframework.security.saml.websso.WebSSOProfileConsumerImpl
 import org.springframework.security.saml.SAMLCredential
 import org.springframework.security.saml.userdetails.SAMLUserDetailsService
+import org.springframework.security.saml2.core.Saml2X509Credential
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
@@ -59,10 +64,13 @@ import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 import java.security.KeyStore
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import java.security.interfaces.RSAPrivateKey
 
 import static org.springframework.security.extensions.saml2.config.SAMLConfigurer.saml
 
-@ConditionalOnExpression('${saml.enabled:false}')
+@ConditionalOnExpression('${saml.groovy.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
@@ -181,6 +189,7 @@ class SamlSsoConfig {
 
     http.saml2Login(saml2 -> saml2.relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()))
 
+
       initSignatureDigest() // Need to be after SAMLConfigurer initializes the global SecurityConfiguration
 
     return http.build()
@@ -192,12 +201,34 @@ class SamlSsoConfig {
 
   RelyingPartyRegistrationRepository relyingPartyRegistrationRepository(){
 
+    Saml2X509Credential saml2X509Credential = saml2X509Credential()
+
     RelyingPartyRegistration registration = RelyingPartyRegistrations
-      .fromMetadataLocation(samlSecurityConfigProperties.metadataUrl).entityId(samlSecurityConfigProperties.issuerId)
-      .registrationId("spinnakerSaml2Registration")
+      .fromMetadataLocation(samlSecurityConfigProperties.metadataUrl).entityId("http://www.okta.com/exk8r4izcvIcvjMSc5d7")
+    .registrationId("spinGateSaml")
+//    .signingX509Credentials(c -> c.add(saml2X509Credential))
       .build()
 
     return new InMemoryRelyingPartyRegistrationRepository(registration)
+  }
+
+  private Saml2X509Credential saml2X509Credential(){
+
+    Resource resource = new FileSystemResource("/home/pranav/Downloads/okta.cert")
+
+//    Resource resource = new ClassPathResource("/home/pranav/isd-releases/ConfigureAuthProvider/okta.cert")
+    try (InputStream is = resource.getInputStream()) {
+      def certificate = CertificateFactory.getInstance("X.509").generateCertificate(is)
+      X509Certificate x509Certificate = certificate as X509Certificate
+//      RSAPrivateKey rsa = RsaKeyConverters.pkcs8().convert(is)
+//      return Saml2X509Credential.decryption(rsa, x509Certificate)
+      return Saml2X509Credential.verification(x509Certificate)
+    }
+
+//    try (InputStream is = resource.getInputStream()) {
+//
+//      return Saml2X509Credential.decryption(rsa, resource)
+//    }
   }
 
   private void initSignatureDigest() {
