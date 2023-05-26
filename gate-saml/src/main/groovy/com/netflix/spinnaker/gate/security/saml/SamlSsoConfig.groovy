@@ -58,7 +58,7 @@ import java.security.KeyStore
 
 import static org.springframework.security.extensions.saml2.config.SAMLConfigurer.saml
 
-@ConditionalOnExpression('${saml.enabled:false}')
+@ConditionalOnExpression('${saml.groovy.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
@@ -146,14 +146,14 @@ class SamlSsoConfig {
   SAMLUserDetailsService samlUserDetailsService = samlUserDetailsService()
 
   @Bean
-  SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  SecurityFilterChain samlFilterChain(HttpSecurity http) throws Exception {
     //We need our session cookie to come across when we get redirected back from the IdP:
     defaultCookieSerializer.setSameSite(null)
     authConfig.configure(http)
 
-    http
-      .rememberMe()
-        .rememberMeServices(rememberMeServices(userDetailsService()))
+//    http
+//      .rememberMe()
+//        .rememberMeServices(rememberMeServices(userDetailsService()))
 
     // @formatter:off
       SAMLConfigurer saml = saml()
@@ -177,7 +177,7 @@ class SamlSsoConfig {
 
 //      saml.init(http)
       initSignatureDigest() // Need to be after SAMLConfigurer initializes the global SecurityConfiguration
-      http.apply(saml).init(http)
+      http.apply(saml)
     return http.build()
 
     // @formatter:on
