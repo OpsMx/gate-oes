@@ -193,3 +193,25 @@ security:
       firstName:
       lastName: name
       username: login
+
+---
+
+#### SAML2 SpringBoot Autoconfiguration
+
+spring:
+  security:
+    saml2:
+      enabled: false
+      groupAttribute: memberOf
+      relyingparty:
+        registration:
+          spinnaker:
+            assertingparty:
+              metadata-uri: https://idp-url/sso/saml/metadata
+            signing:
+              credentials:
+                - private-key-location: file:/tmp/local.key
+                  certificate-location: file:/tmp/local.crt
+            singlelogout:
+              binding: POST
+              response-url: "{baseUrl}/logout/saml2/slo"

@@ -16,4 +16,7 @@ dependencies{
   implementation("org.bouncycastle:bcprov-ext-jdk15on:1.70")
   implementation "org.springframework.security.extensions:spring-security-saml2-core:1.0.9.RELEASE"
   implementation "org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE"
+
+  // https://mvnrepository.com/artifact/org.springframework.security/spring-security-saml2-service-provider
+  implementation group: 'org.springframework.security', name: 'spring-security-saml2-service-provider', version: '6.0.2'
 }

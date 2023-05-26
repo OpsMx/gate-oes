@@ -31,7 +31,8 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 @SpringBootApplication(
   scanBasePackages = [
     "com.netflix.spinnaker.gate",
-    "com.netflix.spinnaker.config"
+    "com.netflix.spinnaker.config",
+    "com.opsmx.spinnaker.gate"
   ],
   exclude = [
     GroovyTemplateAutoConfiguration,
