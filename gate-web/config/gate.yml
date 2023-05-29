@@ -215,3 +215,8 @@ spring:
             singlelogout:
               binding: POST
               response-url: "{baseUrl}/logout/saml2/slo"
+      user-attribute-mapping:
+        firstName: firstName
+        lastName: lastName
+        roles: memberOf
+        email: email
