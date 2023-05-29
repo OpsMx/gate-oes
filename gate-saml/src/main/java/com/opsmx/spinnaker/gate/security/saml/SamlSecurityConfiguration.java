@@ -16,9 +16,13 @@
 
 package com.opsmx.spinnaker.gate.security.saml;
 
+import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.gate.config.AuthConfig;
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.User;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +30,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -52,10 +55,17 @@ public class SamlSecurityConfiguration {
 
   @Autowired private AuthConfig authConfig;
 
-  @Value("${spring.security.saml2.groupAttribute:memberOf}")
-  private String groupAttribute;
+  @Autowired private Saml2UserAttributeMapping saml2UserAttributeMapping;
 
   @Autowired private PermissionService permissionService;
+
+  @Autowired private Registry registry;
+
+  private RetrySupport retrySupport = new RetrySupport();
+
+  @Autowired private AllowedAccountsSupport allowedAccountsSupport;
+
+  @Autowired private FiatClientConfigurationProperties fiatClientConfigurationProperties;
 
   @Bean
   public SecurityFilterChain samlFilterChain(HttpSecurity http) throws Exception {
@@ -63,7 +73,7 @@ public class SamlSecurityConfiguration {
     log.info("Configuring SAML Security");
 
     OpenSaml4AuthenticationProvider authenticationProvider = new OpenSaml4AuthenticationProvider();
-    authenticationProvider.setResponseAuthenticationConverter(groupsConverter());
+    authenticationProvider.setResponseAuthenticationConverter(extractUserDetails());
 
     authConfig.configure(http);
 
@@ -75,7 +85,9 @@ public class SamlSecurityConfiguration {
   }
 
   private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2UserDetails>
-      groupsConverter() {
+      extractUserDetails() {
+
+    log.debug("**Extracting user details**");
 
     Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> delegate =
         OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
@@ -84,30 +96,73 @@ public class SamlSecurityConfiguration {
       Saml2Authentication authentication = delegate.convert(responseToken);
       Saml2AuthenticatedPrincipal principal =
           (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
-      log.info(
-          "********************SAML attributes **************************************** : {}",
-          principal.getAttributes());
-      List<String> groups = principal.getAttribute(groupAttribute);
+
+      List<String> roles = principal.getAttribute(saml2UserAttributeMapping.getRoles());
+      String firstName = principal.getFirstAttribute(saml2UserAttributeMapping.getFirstName());
+      String lastName = principal.getFirstAttribute(saml2UserAttributeMapping.getLastName());
+      String email = principal.getFirstAttribute(saml2UserAttributeMapping.getEmail());
+
       Set<GrantedAuthority> authorities = new HashSet<>();
-      if (groups != null) {
-        groups.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
+      if (roles != null) {
+        roles.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
       } else {
         authorities.addAll(authentication.getAuthorities());
       }
-
       Assertion assertion = responseToken.getResponse().getAssertions().get(0);
       String username = assertion.getSubject().getNameID().getValue();
 
       User user = new User();
-      user.setRoles(groups);
+      user.setRoles(roles);
       user.setUsername(username);
-      user.setFirstName("First Name");
-      user.setLastName("Last name");
+      user.setFirstName(firstName);
+      user.setLastName(lastName);
+      user.setEmail(email);
+      user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(username, roles));
 
-      permissionService.loginWithRoles(username, groups);
+      loginWithRoles(username, roles);
 
       return new Saml2UserDetails(authentication, user);
     };
+  }
+
+  private void loginWithRoles(String username, List<String> roles) {
+
+    var id = registry.createId("fiat.login").withTag("type", "saml");
+
+    try {
+      retrySupport.retry(
+          () -> {
+            permissionService.loginWithRoles(username, roles);
+            return null;
+          },
+          5,
+          2000,
+          Boolean.FALSE);
+
+      log.debug(
+          "Successful SAML authentication (user: {}, roleCount: {}, roles: {})",
+          username,
+          roles.size(),
+          roles);
+      id = id.withTag("success", true).withTag("fallback", "none");
+    } catch (Exception e) {
+      log.debug(
+          "Unsuccessful SAML authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+          username,
+          roles.size(),
+          roles,
+          fiatClientConfigurationProperties.isLegacyFallback(),
+          e);
+      id =
+          id.withTag("success", false)
+              .withTag("fallback", fiatClientConfigurationProperties.isLegacyFallback());
+
+      if (!fiatClientConfigurationProperties.isLegacyFallback()) {
+        throw e;
+      }
+    } finally {
+      registry.counter(id).increment();
+    }
   }
 
   @Bean
