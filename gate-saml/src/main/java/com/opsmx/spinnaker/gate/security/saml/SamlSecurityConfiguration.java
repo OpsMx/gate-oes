@@ -20,11 +20,11 @@ import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.security.User;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.opensaml.saml.saml2.core.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -38,6 +38,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
@@ -57,6 +59,8 @@ public class SamlSecurityConfiguration {
 
   @Autowired private PermissionService permissionService;
 
+  @Autowired private UserDetailsService userDetailsService;
+
   @Bean
   public SecurityFilterChain samlFilterChain(HttpSecurity http) throws Exception {
 
@@ -69,24 +73,12 @@ public class SamlSecurityConfiguration {
 
     http.saml2Login(
             saml2 -> saml2.authenticationManager(new ProviderManager(authenticationProvider)))
-        .userDetailsService(
-            username -> {
-              User user = new User();
-              List<String> roles = new ArrayList<>();
-              roles.add("admin");
-              user.setUsername(username);
-              user.setRoles(roles);
-
-              permissionService.loginWithRoles(username, roles);
-
-              return user;
-            })
         .saml2Logout(Customizer.withDefaults());
 
     return http.build();
   }
 
-  private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication>
+  private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2UserDetails>
       groupsConverter() {
 
     Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> delegate =
@@ -103,7 +95,24 @@ public class SamlSecurityConfiguration {
       } else {
         authorities.addAll(authentication.getAuthorities());
       }
-      return new Saml2Authentication(principal, authentication.getSaml2Response(), authorities);
+
+      Assertion assertion = responseToken.getResponse().getAssertions().get(0);
+      String username = assertion.getSubject().getNameID().getValue();
+      UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+      User user = new User();
+      user.setRoles(groups);
+      user.setUsername(username);
+      user.setFirstName("First Name");
+      user.setLastName("Last name");
+
+      permissionService.loginWithRoles(username, groups);
+
+      return new Saml2UserDetails(authentication, user);
+
+      //      return new Saml2Authentication(principal, authentication.getSaml2Response(),
+      // authorities);
+
     };
   }
 
