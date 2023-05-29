@@ -18,6 +18,9 @@ package com.opsmx.spinnaker.gate.security.saml;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
+import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.security.User;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,6 +55,8 @@ public class SamlSecurityConfiguration {
   @Value("${spring.security.saml2.groupAttribute:memberOf}")
   private String groupAttribute;
 
+  @Autowired private PermissionService permissionService;
+
   @Bean
   public SecurityFilterChain samlFilterChain(HttpSecurity http) throws Exception {
 
@@ -64,6 +69,18 @@ public class SamlSecurityConfiguration {
 
     http.saml2Login(
             saml2 -> saml2.authenticationManager(new ProviderManager(authenticationProvider)))
+        .userDetailsService(
+            username -> {
+              User user = new User();
+              List<String> roles = new ArrayList<>();
+              roles.add("admin");
+              user.setUsername(username);
+              user.setRoles(roles);
+
+              permissionService.loginWithRoles(username, roles);
+
+              return user;
+            })
         .saml2Logout(Customizer.withDefaults());
 
     return http.build();
