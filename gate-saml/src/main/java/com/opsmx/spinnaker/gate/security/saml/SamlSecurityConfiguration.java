@@ -84,6 +84,9 @@ public class SamlSecurityConfiguration {
       Saml2Authentication authentication = delegate.convert(responseToken);
       Saml2AuthenticatedPrincipal principal =
           (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
+      log.info(
+          "********************SAML attributes **************************************** : {}",
+          principal.getAttributes());
       List<String> groups = principal.getAttribute(groupAttribute);
       Set<GrantedAuthority> authorities = new HashSet<>();
       if (groups != null) {
@@ -104,10 +107,6 @@ public class SamlSecurityConfiguration {
       permissionService.loginWithRoles(username, groups);
 
       return new Saml2UserDetails(authentication, user);
-
-      //      return new Saml2Authentication(principal, authentication.getSaml2Response(),
-      // authorities);
-
     };
   }
 
