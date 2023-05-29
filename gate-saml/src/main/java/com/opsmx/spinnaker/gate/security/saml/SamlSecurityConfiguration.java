@@ -38,8 +38,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
@@ -58,8 +56,6 @@ public class SamlSecurityConfiguration {
   private String groupAttribute;
 
   @Autowired private PermissionService permissionService;
-
-  @Autowired private UserDetailsService userDetailsService;
 
   @Bean
   public SecurityFilterChain samlFilterChain(HttpSecurity http) throws Exception {
@@ -98,7 +94,6 @@ public class SamlSecurityConfiguration {
 
       Assertion assertion = responseToken.getResponse().getAssertions().get(0);
       String username = assertion.getSubject().getNameID().getValue();
-      UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
       User user = new User();
       user.setRoles(groups);

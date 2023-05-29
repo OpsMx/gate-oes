@@ -22,9 +22,7 @@ import java.util.List;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
-import org.springframework.stereotype.Component;
 
-@Component
 public class Saml2UserDetails extends AbstractAuthenticationToken {
 
   private User user = null;
