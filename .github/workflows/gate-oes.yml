@@ -29,6 +29,9 @@ jobs:
       - name: Prepare build variables
         id: build_variables
         run: |
+          echo Build number is ${{ github.run_number }}
+          
+           echo git tag is ${GITHUB_REF#refs/*/}
           echo ::set-output name=REPO::ubi8-gate-cve
           echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
       - name: Login to Quay
