@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:8.7 as java-builder
+FROM registry.access.redhat.com/ubi8/ubi:8.8 as java-builder
 LABEL maintainer="OpsMx"
 
 ARG JAVA_PACKAGE=java-17-openjdk-jmods
