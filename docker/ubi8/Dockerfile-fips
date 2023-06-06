@@ -13,7 +13,7 @@ RUN jlink --output runtime --add-modules `paste -sd, - < modules` --compress 2 -
 
 # Build a minimal base image with our custom Java installed.
 
-FROM registry.access.redhat.com/ubi8/ubi:8.7 AS java-base
+FROM registry.access.redhat.com/ubi8/ubi:8.8 AS java-base
 LABEL maintainer="OpsMx"
 COPY --from=java-builder /jrebuild/runtime /opsmx-java-runtime
 ARG OPSMXUSER=1001
