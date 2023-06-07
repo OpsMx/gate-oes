@@ -27,11 +27,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.context.NullSecurityContextRepository
-import org.springframework.security.web.util.matcher.AnyRequestMatcher
 
 @ConditionalOnExpression('${x509.enabled:false}')
 @Configuration
@@ -54,7 +53,7 @@ class X509Config {
   X509AuthenticationUserDetailsService x509AuthenticationUserDetailsService
 
   @Bean
-   public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  public SecurityFilterChain x509FilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http)
     http.securityContext().securityContextRepository(new NullSecurityContextRepository())
     http.x509().authenticationUserDetailsService(x509AuthenticationUserDetailsService)
@@ -65,12 +64,11 @@ class X509Config {
     //x509 is the catch-all if configured, this will auth apiPort connections and
     // any additional ports that get installed and removes the requestMatcher
     // installed by authConfig
-    http.requestMatcher(AnyRequestMatcher.INSTANCE)
   }
 
   @Bean
-  void configure(WebSecurity web) throws Exception {
-    authConfig.configure(web)
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return (web) -> authConfig.configure(web)
   }
 
   @Bean
