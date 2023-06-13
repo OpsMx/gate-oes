@@ -64,6 +64,7 @@ class X509Config {
     //x509 is the catch-all if configured, this will auth apiPort connections and
     // any additional ports that get installed and removes the requestMatcher
     // installed by authConfig
+    return http.build()
   }
 
   @Bean
