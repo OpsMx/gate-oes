@@ -9,7 +9,7 @@
         "requires": "orca>=0.0.0,deck>=0.0.0",
         "sha512sum": "VERIFICATION_SHASUM",
         "state": "",
-        "url": "file:///opt/spinnaker/plugins/ObservabilityPlugin-armory-observability-plugin-v1.4.2-SNAPSHOT.zip"
+        "url": "file:///opt/spinnaker/plugins/armory-observability-plugin-v1.0.0-SNAPSHOT.zip"
       }
     ]
   }
