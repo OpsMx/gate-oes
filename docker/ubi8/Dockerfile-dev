@@ -40,9 +40,21 @@ RUN yum -y remove clean all && rm -rf /var/cache
 
 RUN adduser spinnaker
 RUN mkdir -p /opt/gate/plugins && mkdir -p /opt/spinnaker/plugins
+
+####adding customplugin zip 
+#ARG CUSTOMPLUGIN_RELEASEVERSION
+#ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
+COPY observability-plugin.json /opt/spinnaker/plugins/plugins.json
+
+RUN wget -O Armory.ObservabilityPlugin-armory-observability-plugin-v1.4.2-SNAPSHOT.zip -c https://github.com/OpsMx/armory-observability-plugin/releases/download/v1.0.0/armory-observability-plugin-v1.4.2-SNAPSHOT.zip -P /opt/gate/plugins 
+RUN mv Armory.ObservabilityPlugin-armory-observability-plugin-v1.4.2-SNAPSHOT.zip /opt/gate/plugins/ 
+
+
+RUN sed -i 's/"VERIFICATION_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/ObservabilityPlugin-armory-observability-plugin-v1.4.2-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/spinnaker/plugins/plugins.json 
 RUN chown -R spinnaker:spinnaker /opt/spinnaker
 
 RUN chmod -R 777 /opt/gate/plugins/
 RUN chown -R spinnaker:spinnaker /opt/
+RUN chown -R spinnaker:spinnaker /opt/spinnaker
 USER spinnaker
 CMD ["/opt/gate/bin/gate"]
