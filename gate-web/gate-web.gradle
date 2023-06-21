@@ -35,7 +35,7 @@ dependencies {
   implementation "com.netflix.frigga:frigga:+"
   implementation "redis.clients:jedis"
 
-  implementation "commons-io:commons-io:2.11.0"
+  implementation "commons-io:commons-io"
   implementation "org.apache.groovy:groovy-templates"
   implementation "org.springframework.session:spring-session-data-redis"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid:+"
