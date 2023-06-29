@@ -4,11 +4,14 @@ on:
   workflow_call:
   push:
     branches:
-    - OES-1.30.1
- 
+    - aman
+
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
   CONTAINER_REGISTRY: quay.io/opsmxpublic
+  K8S_DEPLOYMENT_NAME: spin-gate
+  K8S_SERVICE_NAME: gate
+  K8S_NAMESPACE: cvetarget
 
 jobs:
   branch-build:
@@ -30,7 +33,7 @@ jobs:
         id: build_variables
         run: |
           echo Build number is ${{ github.run_number }}
-          
+
            echo git tag is ${GITHUB_REF#refs/*/}
           echo ::set-output name=REPO::ubi8-gate-cve
           echo ::set-output name=VERSION::"$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')"
@@ -44,7 +47,7 @@ jobs:
       - name: Build
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
-        run: ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+        run: ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test
 
       - name: dockerBuildpush
         uses: docker/build-push-action@v2
@@ -55,7 +58,7 @@ jobs:
           file: docker/ubi8/Dockerfile-fips
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}" 
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}"
       - name: dockerBuildpushdev
         uses: docker/build-push-action@v2
         with:
@@ -66,3 +69,13 @@ jobs:
           push: true
           tags: |
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-dev"
+
+      - name: Deploy to Kubernetes
+        uses: azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: Edit gate.yml
+        run: |
+          kubectl -n ${{ env.K8S_NAMESPACE }} exec -it spin-spinnaker-halyard-0 -- bash -c "cd /home/spinnaker/.hal/default/service-settings && sed -i '2d' ${{ env.K8S_SERVICE_NAME }}.yml && sed -i '1s|^|#|' ${{ env.K8S_SERVICE_NAME }}.yml && sed -i '1s|^|artifactId: ${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-dev\n|' ${{ env.K8S_SERVICE_NAME }}.yml && hal deploy apply"
+          kubectl rollout status deployment/${{ env.K8S_DEPLOYMENT_NAME }} -n ${{ env.K8S_NAMESPACE }}
