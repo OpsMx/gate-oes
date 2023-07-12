@@ -51,7 +51,7 @@ jobs:
         with:
           context: .
           build-args: |
-            CUSTOMPLUGIN_RELEASEVERSION=v4.0.3.2-rc1
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
           file: docker/ubi8/Dockerfile-fips
           push: true
           tags: |
@@ -61,7 +61,7 @@ jobs:
         with:
           context: .
           build-args: |
-            CUSTOMPLUGIN_RELEASEVERSION=v4.0.3.2-rc1
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
           file: docker/ubi8/Dockerfile-dev
           push: true
           tags: |
