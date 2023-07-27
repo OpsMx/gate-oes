@@ -28,7 +28,6 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-urlconnection:2.7.5"
   implementation "com.squareup.okhttp:okhttp-apache:2.7.5"
-  implementation "junit:junit:4.13.2"
 
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"

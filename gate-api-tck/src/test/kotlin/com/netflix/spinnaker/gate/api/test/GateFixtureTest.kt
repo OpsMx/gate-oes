@@ -22,14 +22,15 @@ import dev.minutest.rootContext
 class GateFixtureTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
-    /*context("a gate integration test environment") {
+    context("a gate integration test environment") {
       gateFixture {
         Fixture()
       }
 
-      test("service starts") { *//* no-op *//* }
-    }*/
+      test("service starts") { /* no-op */ }
+    }
   }
 
   private inner class Fixture : GateFixture()
 }
+

@@ -29,7 +29,7 @@ import strikt.assertions.isEqualTo
 class GatePluginsTest : PluginsTck<GatePluginsFixture>() {
 
   fun tests() = rootContext<GatePluginsFixture> {
-    /*context("a gate integration test environment and a gate plugin") {
+    context("a gate integration test environment and a gate plugin") {
       serviceFixture {
         GatePluginsFixture()
       }
@@ -66,6 +66,6 @@ class GatePluginsTest : PluginsTck<GatePluginsFixture>() {
           that(response.status).isEqualTo(404)
         }
       }
-    }*/
+    }
   }
 }
