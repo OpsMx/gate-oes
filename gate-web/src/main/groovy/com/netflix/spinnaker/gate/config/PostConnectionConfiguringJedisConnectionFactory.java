@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.gate.config;
 
 import com.google.common.base.Splitter;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,7 +8,6 @@ import java.lang.annotation.Target;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,8 +35,7 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
   @Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER})
   @Retention(RetentionPolicy.RUNTIME)
   @Qualifier
-  @interface ConnectionPostProcessor {
-  }
+  @interface ConnectionPostProcessor {}
 
   @Autowired
   @Lazy
