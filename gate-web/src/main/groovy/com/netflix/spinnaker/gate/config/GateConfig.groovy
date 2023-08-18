@@ -102,7 +102,6 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @SuppressWarnings('GrDeprecatedAPIUsage')
-  @Autowired
   GateConfig(@Value('${server.session.timeout-in-seconds:3600}') int maxInactiveIntervalInSeconds) {
     super.setMaxInactiveIntervalInSeconds(maxInactiveIntervalInSeconds)
   }
