@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.gate.config;
 
 import com.google.common.base.Splitter;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -8,9 +9,11 @@ import java.lang.annotation.Target;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.session.data.redis.config.ConfigureNotifyKeyspaceEventsAction;
@@ -34,20 +37,19 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
   @Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER})
   @Retention(RetentionPolicy.RUNTIME)
   @Qualifier
-  @interface ConnectionPostProcessor {}
+  @interface ConnectionPostProcessor {
+  }
 
-  private final ConfigureRedisAction configureRedisAction;
+  @Autowired
+  @Lazy
+  @ConnectionPostProcessor
+  private ConfigureRedisAction configureRedisAction;
 
   private volatile boolean ranConfigureRedisAction;
 
-  @Autowired
   public PostConnectionConfiguringJedisConnectionFactory(
-      @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
-      @Value("${redis.timeout:2000}") int timeout,
-      @ConnectionPostProcessor Optional<ConfigureRedisAction> configureRedisAction) {
-
-    this.configureRedisAction =
-        configureRedisAction.orElse(new ConfigureNotifyKeyspaceEventsAction());
+    @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
+    @Value("${redis.timeout:2000}") int timeout) {
 
     URI redisUri = URI.create(connectionUri);
     setHostName(redisUri.getHost());
@@ -69,6 +71,9 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
   @Override
   protected JedisConnection postProcessConnection(JedisConnection connection) {
     if (!ranConfigureRedisAction) {
+      if (configureRedisAction == null) {
+        configureRedisAction = new ConfigureNotifyKeyspaceEventsAction();
+      }
       configureRedisAction.configure(connection);
       ranConfigureRedisAction = true;
     }
