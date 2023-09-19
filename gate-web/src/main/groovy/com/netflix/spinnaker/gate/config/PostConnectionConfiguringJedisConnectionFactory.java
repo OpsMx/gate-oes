@@ -11,7 +11,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.session.data.redis.config.ConfigureNotifyKeyspaceEventsAction;
@@ -37,16 +36,42 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
   @Qualifier
   @interface ConnectionPostProcessor {}
 
-  @Autowired
-  @Lazy
-  @ConnectionPostProcessor
-  private ConfigureRedisAction configureRedisAction;
+  private final ConfigureRedisAction configureRedisAction;
 
   private volatile boolean ranConfigureRedisAction;
 
+  @Autowired
   public PostConnectionConfiguringJedisConnectionFactory(
-    @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
-    @Value("${redis.timeout:2000}") int timeout) {
+      @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
+      @Value("${redis.timeout:2000}") int timeout,
+      @ConnectionPostProcessor Optional<ConfigureRedisAction> configureRedisAction) {
+
+    this.configureRedisAction =
+        configureRedisAction.orElse(new ConfigureNotifyKeyspaceEventsAction());
+
+    URI redisUri = URI.create(connectionUri);
+    setHostName(redisUri.getHost());
+    setPort(redisUri.getPort());
+    setTimeout(timeout);
+
+    if (redisUri.getUserInfo() != null) {
+      List<String> userInfo = USER_INFO_SPLITTER.splitToList(redisUri.getUserInfo());
+      if (userInfo.size() >= 2) {
+        setPassword(userInfo.get(1));
+      }
+    }
+
+    if (redisUri.getScheme().equals("rediss")) {
+      setUseSsl(true);
+    }
+  }
+
+  @Autowired
+  public PostConnectionConfiguringJedisConnectionFactory(
+      @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
+      @Value("${redis.timeout:2000}") int timeout) {
+
+    this.configureRedisAction = new ConfigureNotifyKeyspaceEventsAction();
 
     URI redisUri = URI.create(connectionUri);
     setHostName(redisUri.getHost());
@@ -68,9 +93,6 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
   @Override
   protected JedisConnection postProcessConnection(JedisConnection connection) {
     if (!ranConfigureRedisAction) {
-      if (configureRedisAction == null) {
-        configureRedisAction = new ConfigureNotifyKeyspaceEventsAction();
-      }
       configureRedisAction.configure(connection);
       ranConfigureRedisAction = true;
     }
