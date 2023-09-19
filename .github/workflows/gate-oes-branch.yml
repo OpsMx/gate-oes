@@ -1,0 +1,83 @@
+name: Branch Build gate with local branch
+
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      branch:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Branch name'
+        # Default value if no value is explicitly provided
+        default: 'master'
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: string 
+ 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
+  CONTAINER_REGISTRY: quay.io/opsmxpublic
+
+jobs:
+  branch-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: refs/heads/${{ inputs.branch }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      - name: Prepare build variables
+        id: build_variables
+        run: |
+          echo Build number is ${{ github.run_number }}
+          
+           echo git tag is ${GITHUB_REF#refs/*/}
+          echo ::set-output name=REPO::ubi8-gate-cve
+          echo ::set-output name=VERSION::"1.30.1$(date --utc +'%Y%m%d')"
+      - name: Login to Quay
+        uses: docker/login-action@v1
+        # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_KEY }}
+      - name: Build
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
+        run: |
+            sed  -e 's/NEXUS_USERNAME/${{ secrets.NEXUS_USERNAME }}/' -i settings.gradle
+            sed  -e 's/NEXUS_PASSWORD/${{ secrets.NEXUS_PASSWORD }}/' -i settings.gradle
+            sed  -e 's/NEXUS_USERNAME/${{ secrets.NEXUS_USERNAME }}/' -i build.gradle
+            sed  -e 's/NEXUS_PASSWORD/${{ secrets.NEXUS_PASSWORD }}/' -i build.gradle
+        
+            ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+
+      - name: dockerBuildpush
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
+          file: docker/ubi8/Dockerfile-fips
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}" 
+      - name: dockerBuildpushdev
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
+          file: docker/ubi8/Dockerfile-dev
+          push: true
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-dev"
