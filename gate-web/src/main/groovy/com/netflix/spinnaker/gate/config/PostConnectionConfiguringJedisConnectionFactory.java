@@ -66,7 +66,6 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
     }
   }
 
-  @Autowired
   public PostConnectionConfiguringJedisConnectionFactory(
       @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
       @Value("${redis.timeout:2000}") int timeout) {
