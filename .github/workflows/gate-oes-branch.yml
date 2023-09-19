@@ -6,6 +6,15 @@ on:
   workflow_dispatch:
     # Inputs the workflow accepts.
     inputs:
+      org:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Organisation name'
+        # Default value if no value is explicitly provided
+        default: 'opsmx'
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: string 
       branch:
         # Friendly description to be shown in the UI instead of 'name'
         description: 'Branch name'
@@ -26,6 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          repository: opsmx/${{ inputs.org }}
           ref: refs/heads/${{ inputs.branch }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
