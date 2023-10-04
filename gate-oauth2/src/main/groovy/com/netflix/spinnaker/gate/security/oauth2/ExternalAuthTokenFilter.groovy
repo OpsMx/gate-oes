@@ -20,10 +20,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken
 import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor
 import org.springframework.stereotype.Component
 
 import jakarta.servlet.Filter
@@ -52,7 +50,7 @@ class ExternalAuthTokenFilter implements Filter {
   @Override
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     def httpServletRequest = (HttpServletRequest) request
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication()
+    Authentication auth = extractor.extract(httpServletRequest)
     if (auth?.principal) {
       DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(auth.principal.toString())
       // Reassign token type to be capitalized "Bearer",
