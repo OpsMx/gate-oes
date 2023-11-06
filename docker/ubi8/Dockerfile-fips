@@ -58,12 +58,27 @@ RUN sed -i 's/"VERIFICATION_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/Verif
     && sed -i 's/"APPROVAL_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/spinnaker/plugins/plugins.json
 
 
-COPY ./docker/ubi8/observability-plugin.json /opt/gate/plugins/plugins.json
+#COPY ./docker/ubi8/observability-plugin.json /opt/gate/plugins/plugins.json
 
-RUN wget -O armory-observability-plugin-v1.0.0-SNAPSHOT.zip -c https://github.com/OpsMx/armory-observability-plugin/releases/download/v1.0.0/armory-observability-plugin-v1.4.2-SNAPSHOT.zip -P /opt/gate/plugins 
-RUN mv armory-observability-plugin-v1.0.0-SNAPSHOT.zip /opt/gate/plugins/ 
+#RUN wget -O armory-observability-plugin-v1.0.0-SNAPSHOT.zip -c https://github.com/OpsMx/armory-observability-plugin/releases/download/v1.0.0/armory-observability-plugin-v1.4.2-SNAPSHOT.zip -P /opt/gate/plugins 
+#RUN mv armory-observability-plugin-v1.0.0-SNAPSHOT.zip /opt/gate/plugins/ 
 
-RUN sed -i 's/"VERIFICATION_SHASUM"/'\""$(sha512sum /opt/gate/plugins/armory-observability-plugin-v1.0.0-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/gate/plugins/plugins.json 
+#RUN sed -i 's/"VERIFICATION_SHASUM"/'\""$(sha512sum /opt/gate/plugins/armory-observability-plugin-v1.0.0-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/gate/plugins/plugins.json 
+
+#custom plugin zip files adding
+ARG CUSTOMPLUGIN_RELEASEORG
+ENV CUSTOMPLUGIN_RELEASEORG=$CUSTOMPLUGIN_RELEASEORG
+
+ARG CUSTOMPLUGIN_RELEASEREPO
+ENV CUSTOMPLUGIN_RELEASEREPO=$CUSTOMPLUGIN_RELEASEREPO
+
+ARG CUSTOMPLUGIN_RELEASEVERSION
+ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
+
+RUN wget -O Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASEVERSION}-SNAPSHOT.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/${CUSTOMPLUGIN_RELEASEREPO}/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/armory-observability-plugin-${CUSTOMPLUGIN_RELEASEVERSION}.zip -P /opt/gate/plugins 
+
+RUN mv Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASEVERSION}-SNAPSHOT.zip /opt/gate/plugins/
+
 RUN chown -R spinnaker:spinnaker /opt/spinnaker
 
 RUN chmod -R 777 /opt/gate/plugins/
