@@ -113,26 +113,26 @@ class FunctionalSpec extends Specification {
   }
 
   void "should call ApplicationService for applications"() {
-    /*when:
+    when:
       api.applications
 
     then:
-      1 * applicationService.getAllApplications() >> []*/
+      1 * applicationService.getAllApplications() >> []
   }
 
   void "should call ApplicationService for a single application"() {
-    /*when:
+    when:
       api.getApplication(name)
 
     then:
       1 * applicationService.getApplication(name, true) >> [name: name]
 
     where:
-      name = "foo"*/
+      name = "foo"
   }
 
   void "should 404 if ApplicationService does not return an application"() {
-    /*when:
+    when:
       api.getApplication(name)
 
     then:
@@ -142,11 +142,11 @@ class FunctionalSpec extends Specification {
       exception.response.status == 404
 
     where:
-      name = "foo"*/
+      name = "foo"
   }
 
   void "should call ApplicationService for an application's tasks"() {
-    /*when:
+    when:
       api.getTasks(name, null, null, "RUNNING,TERMINAL")
 
     then:
@@ -154,11 +154,11 @@ class FunctionalSpec extends Specification {
       1 * orcaService.getTasks(name, null, null, "RUNNING,TERMINAL") >> []
 
     where:
-      name = "foo"*/
+      name = "foo"
   }
 
   void "should call TaskService to create a task for an application"() {
-    /*when:
+    when:
       api.createTask("foo", task)
 
     then:
@@ -166,7 +166,7 @@ class FunctionalSpec extends Specification {
 
     where:
       name = "foo"
-      task = [type: "deploy"]*/
+      task = [type: "deploy"]
   }
 
   Map toMap(TypedInput typedInput) {

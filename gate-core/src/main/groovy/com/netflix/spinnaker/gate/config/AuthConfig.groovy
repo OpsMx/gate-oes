@@ -80,7 +80,7 @@ class AuthConfig {
     http
       .authorizeHttpRequests((authz) ->
         authz
-          .requestMatchers("/error", "/favicon.ico", "/auth/user", "/health").permitAll()
+          .requestMatchers("/error", "/favicon.ico", "/auth/user", "/health", "/aop-prometheus").permitAll()
           .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
           .requestMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
           .requestMatchers("/plugins/deck/**").permitAll()
