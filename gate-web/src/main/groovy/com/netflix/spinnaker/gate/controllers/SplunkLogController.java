@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/splunk")
-@ConditionalOnProperty("splunk.log.enabled", matchIfMissing = false)
+@ConditionalOnProperty(name = "splunk.log.enabled", havingValue = "true", matchIfMissing = false)
 public class SplunkLogController {
 
   private static final Logger log = LoggerFactory.getLogger(SplunkLogController.class);
