@@ -35,11 +35,11 @@ public class SplunkLogController {
     String logUrl = baseURL.replace("CLUSTER_NAME", clusterName).replace("POD_NAME", podName);
     log.info("Inside SplunkLogController - getSplunkLogs(), splunk Log URL : " + logUrl);
 
+    String logFileName = podName + "-log";
+    String headerValue = "attachment; filename=" + logFileName;
     try (InputStream in = new URL(logUrl).openStream()) {
       byte[] fileContents = in.readAllBytes();
-      return ResponseEntity.ok()
-          .header("Content-Disposition", "attachment; filename=log.zip")
-          .body(fileContents);
+      return ResponseEntity.ok().header("Content-Disposition", headerValue).body(fileContents);
     }
   }
 }
