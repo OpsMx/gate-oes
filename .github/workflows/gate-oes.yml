@@ -70,7 +70,7 @@ jobs:
         with:
           context: .
           build-args: |
-            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4.2-rc3
             CUSTOMPLUGIN_RELEASEORG=opsmx
             CUSTOMPLUGIN_RELEASEREPO=armory-observability-plugin
             CUSTOMPLUGIN_RELEASE_VERSION=v1.0.1
