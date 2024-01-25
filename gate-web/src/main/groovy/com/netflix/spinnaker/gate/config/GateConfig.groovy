@@ -123,21 +123,9 @@ class GateConfig extends RedisHttpSessionConfiguration {
     new RestTemplate()
   }
 
-  /**
-   * Always disable the ConfigureRedisAction that Spring Boot uses internally. Instead we use one
-   * qualified with @ConnectionPostProcessor. See
-   * {@link PostConnectionConfiguringJedisConnectionFactory}.
-   * */
   @Bean
   @Primary
   ConfigureRedisAction springBootConfigureRedisAction() {
-    return ConfigureRedisAction.NO_OP
-  }
-
-  @Bean
-  @ConnectionPostProcessor
-  @ConditionalOnProperty("redis.configuration.secure")
-  ConfigureRedisAction connectionPostProcessorConfigureRedisAction() {
     return ConfigureRedisAction.NO_OP
   }
 
