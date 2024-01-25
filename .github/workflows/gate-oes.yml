@@ -2,9 +2,10 @@ name: Branch Build gate
 
 on:
   workflow_call:
+  workflow_dispatch:
   push:
     branches:
-    - OES-1.30.1
+    - nov
  
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
@@ -57,7 +58,7 @@ jobs:
         with:
           context: .
           build-args: |
-            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4.2-rc5
             CUSTOMPLUGIN_RELEASEORG=opsmx
             CUSTOMPLUGIN_RELEASEREPO=armory-observability-plugin
             CUSTOMPLUGIN_RELEASE_VERSION=v1.0.1
@@ -70,7 +71,7 @@ jobs:
         with:
           context: .
           build-args: |
-            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom
+            CUSTOMPLUGIN_RELEASEVERSION=v4.0.4.2-rc5
             CUSTOMPLUGIN_RELEASEORG=opsmx
             CUSTOMPLUGIN_RELEASEREPO=armory-observability-plugin
             CUSTOMPLUGIN_RELEASE_VERSION=v1.0.1
