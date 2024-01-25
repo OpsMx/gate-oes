@@ -66,29 +66,6 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
     }
   }
 
-  public PostConnectionConfiguringJedisConnectionFactory(
-      @Value("${redis.connection:redis://localhost:6379}") String connectionUri,
-      @Value("${redis.timeout:2000}") int timeout) {
-
-    this.configureRedisAction = new ConfigureNotifyKeyspaceEventsAction();
-
-    URI redisUri = URI.create(connectionUri);
-    setHostName(redisUri.getHost());
-    setPort(redisUri.getPort());
-    setTimeout(timeout);
-
-    if (redisUri.getUserInfo() != null) {
-      List<String> userInfo = USER_INFO_SPLITTER.splitToList(redisUri.getUserInfo());
-      if (userInfo.size() >= 2) {
-        setPassword(userInfo.get(1));
-      }
-    }
-
-    if (redisUri.getScheme().equals("rediss")) {
-      setUseSsl(true);
-    }
-  }
-
   @Override
   protected JedisConnection postProcessConnection(JedisConnection connection) {
     if (!ranConfigureRedisAction) {
