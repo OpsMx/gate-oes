@@ -93,14 +93,35 @@ public class SamlSecurityConfiguration {
         OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
     return responseToken -> {
+      log.info("responseToken : {}", responseToken);
+      if (responseToken.getToken() != null) {
+        log.info("responseToken.getToken() : {}", responseToken.getToken());
+        log.info("responseToken.getToken().getSaml2Response() : {}", responseToken.getToken().getSaml2Response());
+        log.info("responseToken.getToken().getDetails() : {}", responseToken.getToken().getDetails());
+        log.info("responseToken.getToken().getPrincipal() : {}", responseToken.getToken().getPrincipal());
+        log.info("responseToken.getToken().getAuthorities() : {}", responseToken.getToken().getAuthorities());
+      }
       Saml2Authentication authentication = delegate.convert(responseToken);
       Saml2AuthenticatedPrincipal principal =
           (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
+
+      log.info("responseToken after conversion : {}", authentication);
+      log.info("responseToken principal after conversion : {}", principal);
+
+      log.info("role attribute in config : {}", saml2UserAttributeMapping.getRoles());
+      log.info("firstName attribute in config : {}", saml2UserAttributeMapping.getFirstName());
+      log.info("lastName attribute in config : {}", saml2UserAttributeMapping.getLastName());
+      log.info("email attribute in config : {}", saml2UserAttributeMapping.getEmail());
 
       List<String> roles = principal.getAttribute(saml2UserAttributeMapping.getRoles());
       String firstName = principal.getFirstAttribute(saml2UserAttributeMapping.getFirstName());
       String lastName = principal.getFirstAttribute(saml2UserAttributeMapping.getLastName());
       String email = principal.getFirstAttribute(saml2UserAttributeMapping.getEmail());
+
+      log.info("roles extracted from responseToken : {}", roles);
+      log.info("firstName extracted from responseToken : {}", firstName);
+      log.info("lastName extracted from responseToken : {}", lastName);
+      log.info("email extracted from responseToken : {}", email);
 
       Set<GrantedAuthority> authorities = new HashSet<>();
       if (roles != null) {
