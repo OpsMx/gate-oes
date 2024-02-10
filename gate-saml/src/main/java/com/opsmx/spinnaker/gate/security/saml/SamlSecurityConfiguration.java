@@ -24,9 +24,10 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.User;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,7 @@ public class SamlSecurityConfiguration {
         OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
     return responseToken -> {
+      List<String> roles = Collections.emptyList();
       log.info("responseToken : {}", responseToken);
       if (responseToken.getToken() != null) {
         log.info("responseToken.getToken() : {}", responseToken.getToken());
@@ -113,13 +115,14 @@ public class SamlSecurityConfiguration {
       log.info("lastName attribute in config : {}", saml2UserAttributeMapping.getLastName());
       log.info("email attribute in config : {}", saml2UserAttributeMapping.getEmail());
 
-      List<String> roles = principal.getAttribute(saml2UserAttributeMapping.getRoles());
+      List<String> rolesFromIdp = principal.getAttribute(saml2UserAttributeMapping.getRoles());
       String firstName = principal.getFirstAttribute(saml2UserAttributeMapping.getFirstName());
       String lastName = principal.getFirstAttribute(saml2UserAttributeMapping.getLastName());
       String email = principal.getFirstAttribute(saml2UserAttributeMapping.getEmail());
 
       Set<GrantedAuthority> authorities = new HashSet<>();
-      if (roles != null) {
+      if (rolesFromIdp != null && saml2UserAttributeMapping.getRolesDelimiter()!=null) {
+        roles = Arrays.stream(rolesFromIdp.get(0).split(saml2UserAttributeMapping.getRolesDelimiter())).collect(Collectors.toList());
         log.info("roles size extracted from responseToken : {}", roles.size());
         roles.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
       } else {
