@@ -89,6 +89,9 @@ class PermissionService {
   void loginWithRoles(String userId, Collection<String> roles) {
     if (fiatStatus.isEnabled()) {
       try {
+        if (roles!=null) {
+          log.info("roles size in permission service : {}", roles.size())
+        }
         AuthenticatedRequest.allowAnonymous({
           fiatServiceForLogin.loginWithRoles(userId, roles)
           permissionEvaluator.invalidatePermission(userId)

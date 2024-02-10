@@ -118,17 +118,17 @@ public class SamlSecurityConfiguration {
       String lastName = principal.getFirstAttribute(saml2UserAttributeMapping.getLastName());
       String email = principal.getFirstAttribute(saml2UserAttributeMapping.getEmail());
 
-      log.info("roles extracted from responseToken : {}", roles);
-      log.info("firstName extracted from responseToken : {}", firstName);
-      log.info("lastName extracted from responseToken : {}", lastName);
-      log.info("email extracted from responseToken : {}", email);
-
       Set<GrantedAuthority> authorities = new HashSet<>();
       if (roles != null) {
+        log.info("roles size extracted from responseToken : {}", roles.size());
         roles.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
       } else {
         authorities.addAll(authentication.getAuthorities());
       }
+      log.info("roles extracted from responseToken : {}", roles);
+      log.info("firstName extracted from responseToken : {}", firstName);
+      log.info("lastName extracted from responseToken : {}", lastName);
+      log.info("email extracted from responseToken : {}", email);
       Assertion assertion = responseToken.getResponse().getAssertions().get(0);
       String username = assertion.getSubject().getNameID().getValue();
 
