@@ -16,6 +16,7 @@
 
 package com.opsmx.spinnaker.gate.security.saml;
 
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,7 +30,15 @@ public class Saml2UserAttributeMapping {
 
   private String firstName = "user.firstName";
   private String lastName = "user.lastName";
-  private String roles = "memberOf";
+  private Roles roles = new Roles();
   private String email = "user.email";
-  private String rolesDelimiter;
+
+  @Data
+  public static class Roles {
+    private String attributeName = "memberOf";
+    private List<String> requiredRoles;
+    private boolean sortRoles = false;
+    private boolean forceLowercaseRoles = true;
+    private String rolesDelimiter;
+  }
 }
