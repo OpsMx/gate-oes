@@ -24,9 +24,10 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.User;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,17 +94,32 @@ public class SamlSecurityConfiguration {
         OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
     return responseToken -> {
+      List<String> roles = new ArrayList<>();
+      log.debug("responseToken : {}", responseToken);
       Saml2Authentication authentication = delegate.convert(responseToken);
       Saml2AuthenticatedPrincipal principal =
           (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
 
-      List<String> roles = principal.getAttribute(saml2UserAttributeMapping.getRoles());
+      log.debug("role attribute in config : {}", saml2UserAttributeMapping.getRoles());
+      log.debug("firstName attribute in config : {}", saml2UserAttributeMapping.getFirstName());
+      log.debug("lastName attribute in config : {}", saml2UserAttributeMapping.getLastName());
+      log.debug("email attribute in config : {}", saml2UserAttributeMapping.getEmail());
+      log.debug("rolesDelimiter in config : {}", saml2UserAttributeMapping.getRolesDelimiter());
+
+      List<String> rolesExtractedFromIDP = principal.getAttribute(saml2UserAttributeMapping.getRoles());
       String firstName = principal.getFirstAttribute(saml2UserAttributeMapping.getFirstName());
       String lastName = principal.getFirstAttribute(saml2UserAttributeMapping.getLastName());
       String email = principal.getFirstAttribute(saml2UserAttributeMapping.getEmail());
 
       Set<GrantedAuthority> authorities = new HashSet<>();
-      if (roles != null) {
+      if (rolesExtractedFromIDP != null) {
+        if (saml2UserAttributeMapping.getRolesDelimiter()!=null) {
+          for (String role: rolesExtractedFromIDP){
+            roles.addAll(Arrays.stream(role.split(saml2UserAttributeMapping.getRolesDelimiter())).toList());
+          }
+        } else {
+          roles = rolesExtractedFromIDP;
+        }
         roles.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
       } else {
         authorities.addAll(authentication.getAuthorities());
@@ -118,6 +134,12 @@ public class SamlSecurityConfiguration {
       user.setLastName(lastName);
       user.setEmail(email);
       user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(username, roles));
+
+      log.debug("username extracted from responseToken : {}", username);
+      log.debug("firstName extracted from responseToken : {}", firstName);
+      log.debug("lastName extracted from responseToken : {}", lastName);
+      log.debug("email extracted from responseToken : {}", email);
+      log.debug("roles extracted from responseToken : {}", roles);
 
       loginWithRoles(username, roles);
 

@@ -31,4 +31,5 @@ public class Saml2UserAttributeMapping {
   private String lastName = "user.lastName";
   private String roles = "memberOf";
   private String email = "user.email";
+  private String rolesDelimiter;
 }
