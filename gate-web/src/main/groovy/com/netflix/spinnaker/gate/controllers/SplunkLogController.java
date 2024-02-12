@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.controllers;
 
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -28,7 +28,7 @@ public class SplunkLogController {
   @Value("${splunk.log.clusterName}")
   private String clusterName;
 
-  @ApiOperation("Retrieve splunk logs")
+  @Operation(summary = "Retrieve splunk logs")
   @GetMapping("/logs/{podName}")
   public ResponseEntity<byte[]> getSplunkLogs(@PathVariable("podName") String podName)
       throws IOException {
