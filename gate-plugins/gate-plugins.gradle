@@ -28,9 +28,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-web"
-
-  implementation "io.swagger:swagger-annotations:1.6.2"
-
+  implementation "io.spinnaker.kork:kork-swagger"
   implementation "org.springframework:spring-web"
   implementation "org.pf4j:pf4j-update:+"
 }

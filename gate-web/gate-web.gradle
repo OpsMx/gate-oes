@@ -34,6 +34,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-swagger"
   implementation "com.netflix.frigga:frigga:+"
   implementation "redis.clients:jedis"
 
@@ -75,7 +76,6 @@ dependencies {
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "io.spinnaker.kork:kork-test"
-  testImplementation "org.codehaus.groovy:groovy-json"
   testRuntimeOnly "io.spinnaker.kork:kork-retrofit"
 
   // Add each included authz provider as a runtime dependency
