@@ -32,7 +32,6 @@ public class Saml2UserAttributeMapping {
   private String lastName = "user.lastName";
   private Roles roles;
   private String email = "user.email";
-  private String rolesDelimiter;
 
   @Data
   @Configuration
@@ -42,5 +41,6 @@ public class Saml2UserAttributeMapping {
     private List<String> requiredRoles;
     private boolean sortRoles = false;
     private boolean forceLowercaseRoles = true;
+    private String rolesDelimiter;
   }
 }

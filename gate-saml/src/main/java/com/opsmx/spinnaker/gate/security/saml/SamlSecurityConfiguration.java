@@ -24,32 +24,40 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.User;
-import java.util.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.xml.security.BasicSecurityConfiguration;
 import org.opensaml.xml.signature.SignatureConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties;
 import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 
 @Slf4j
@@ -58,6 +66,12 @@ import org.springframework.security.web.authentication.rememberme.TokenBasedReme
 @SpinnakerAuthConfig
 @ConditionalOnExpression("${spring.security.saml2.enabled:false}")
 public class SamlSecurityConfiguration {
+
+  @Value("${services.deck.baseUrl}")
+  private String deckUrl;
+
+  @Value("${spring.security.saml2.registration-id}")
+  private String registrationId;
 
   @Autowired private AuthConfig authConfig;
 
@@ -75,12 +89,32 @@ public class SamlSecurityConfiguration {
 
   @Autowired private FiatClientConfigurationProperties fiatClientConfigurationProperties;
 
-  @Autowired private UserDetailsService userDetailsService;
+  @Lazy @Autowired private UserDetailsService userDetailsService;
+
+  @Lazy @Autowired private AuthenticationManager authenticationManager;
+
+  @Autowired private Saml2RelyingPartyProperties relyingPartyProperties;
+
+  private URI acsLocation;
+
+  private String loginProcessingUrl;
+
+  public static final String defaultFilterUrl =
+      "{baseUrl}" + Saml2WebSsoAuthenticationFilter.DEFAULT_FILTER_PROCESSES_URI;
 
   @PostConstruct
   public void validate() {
     // Validate signature digest algorithm
     SignatureAlgorithms.fromName(saml2Config.getSignatureDigest());
+  }
+
+  @Bean
+  public UserDetailsService userDetailsService() {
+    return username -> {
+      User user = new User();
+      user.setUsername(username);
+      return user;
+    };
   }
 
   @Bean
@@ -93,22 +127,89 @@ public class SamlSecurityConfiguration {
   }
 
   @Bean
+  public OpenSaml4AuthenticationProvider authenticationProvider() {
+    var authProvider = new OpenSaml4AuthenticationProvider();
+    authProvider.setResponseAuthenticationConverter(extractUserDetails());
+    return authProvider;
+  }
+
+  @Bean
+  public AuthenticationManager authenticationManager(
+      OpenSaml4AuthenticationProvider authenticationProvider) {
+    return new ProviderManager(authenticationProvider);
+  }
+
+  @Bean
+  public Saml2WebSsoAuthenticationFilter saml2WebSsoAuthenticationFilter(
+      RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+      AuthenticationManager authenticationManager) {
+    log.info(
+        "relyingPartyProperties.getRegistration().get(registrationId).getAcs().getLocation() : {}",
+        relyingPartyProperties.getRegistration().get(registrationId).getAcs().getLocation());
+    Saml2WebSsoAuthenticationFilter saml2WebSsoAuthenticationFilter;
+    if (!relyingPartyProperties
+        .getRegistration()
+        .get(registrationId)
+        .getAcs()
+        .getLocation()
+        .equalsIgnoreCase(defaultFilterUrl)) {
+      initUri();
+      saml2WebSsoAuthenticationFilter =
+          new Saml2WebSsoAuthenticationFilter(
+              relyingPartyRegistrationRepository, loginProcessingUrl);
+      saml2WebSsoAuthenticationFilter.setAuthenticationManager(authenticationManager);
+      saml2WebSsoAuthenticationFilter.setAuthenticationSuccessHandler(
+          new SimpleUrlAuthenticationSuccessHandler(deckUrl));
+      return saml2WebSsoAuthenticationFilter;
+    }
+    saml2WebSsoAuthenticationFilter =
+        new Saml2WebSsoAuthenticationFilter(relyingPartyRegistrationRepository);
+    saml2WebSsoAuthenticationFilter.setAuthenticationManager(authenticationManager);
+    saml2WebSsoAuthenticationFilter.setAuthenticationSuccessHandler(
+        new SimpleUrlAuthenticationSuccessHandler(deckUrl));
+
+    return saml2WebSsoAuthenticationFilter;
+  }
+
+  private void initUri() {
+    try {
+      acsLocation =
+          new URI(
+              relyingPartyProperties.getRegistration().get(registrationId).getAcs().getLocation());
+      loginProcessingUrl = acsLocation.getPath().replace(registrationId, "{registrationId}");
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    } catch (Exception e) {
+      log.error("Exception occurred while reading the ACS endpoint : ", e);
+      throw e;
+    }
+  }
+
+  @Bean
   public SecurityFilterChain samlFilterChain(
-      HttpSecurity http, RememberMeServices rememberMeServices) throws Exception {
+      HttpSecurity http,
+      RememberMeServices rememberMeServices,
+      Saml2WebSsoAuthenticationFilter webSsoAuthenticationFilter)
+      throws Exception {
 
     log.info("Configuring SAML Security");
-
-    OpenSaml4AuthenticationProvider authenticationProvider = new OpenSaml4AuthenticationProvider();
-    authenticationProvider.setResponseAuthenticationConverter(extractUserDetails());
 
     authConfig.configure(http);
 
     http.saml2Login(
             saml2 -> {
-              saml2.authenticationManager(new ProviderManager(authenticationProvider));
-              saml2.loginProcessingUrl("/saml/sso");
+              saml2.authenticationManager(authenticationManager);
+              if (!relyingPartyProperties
+                  .getRegistration()
+                  .get(registrationId)
+                  .getAcs()
+                  .getLocation()
+                  .equalsIgnoreCase(defaultFilterUrl)) {
+                saml2.loginProcessingUrl(loginProcessingUrl);
+              }
             })
         .rememberMe(remember -> remember.rememberMeServices(rememberMeServices))
+        .addFilter(webSsoAuthenticationFilter)
         .saml2Logout(Customizer.withDefaults());
 
     initSignatureDigest();
@@ -135,7 +236,9 @@ public class SamlSecurityConfiguration {
       log.debug("firstName attribute in config : {}", saml2UserAttributeMapping.getFirstName());
       log.debug("lastName attribute in config : {}", saml2UserAttributeMapping.getLastName());
       log.debug("email attribute in config : {}", saml2UserAttributeMapping.getEmail());
-      log.debug("rolesDelimiter in config : {}", saml2UserAttributeMapping.getRolesDelimiter());
+      log.debug(
+          "rolesDelimiter in config : {}",
+          saml2UserAttributeMapping.getRoles().getRolesDelimiter());
 
       List<String> rolesExtractedFromIDP =
           principal.getAttribute(saml2UserAttributeMapping.getRoles().getAttributeName());
@@ -145,12 +248,12 @@ public class SamlSecurityConfiguration {
       Assertion assertion = responseToken.getResponse().getAssertions().get(0);
       String username = assertion.getSubject().getNameID().getValue();
 
-      Set<GrantedAuthority> authorities = new HashSet<>();
       if (rolesExtractedFromIDP != null) {
-        if (saml2UserAttributeMapping.getRolesDelimiter() != null) {
+        if (saml2UserAttributeMapping.getRoles().getRolesDelimiter() != null) {
           for (String role : rolesExtractedFromIDP) {
             roles.addAll(
-                Arrays.stream(role.split(saml2UserAttributeMapping.getRolesDelimiter())).toList());
+                Arrays.stream(role.split(saml2UserAttributeMapping.getRoles().getRolesDelimiter()))
+                    .toList());
           }
         } else {
           roles = rolesExtractedFromIDP;
@@ -170,12 +273,7 @@ public class SamlSecurityConfiguration {
                     username, saml2UserAttributeMapping.getRoles().getRequiredRoles()));
           }
         }
-        roles.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
-      } else {
-        authorities.addAll(authentication.getAuthorities());
       }
-
-      UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
       User user = new User();
       user.setRoles(roles);
@@ -193,7 +291,7 @@ public class SamlSecurityConfiguration {
 
       loginWithRoles(username, roles);
 
-      return new Saml2UserDetails(authentication, userDetails);
+      return new Saml2UserDetails(authentication, user);
     };
   }
 

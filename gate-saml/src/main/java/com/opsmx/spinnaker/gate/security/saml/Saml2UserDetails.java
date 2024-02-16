@@ -21,21 +21,12 @@ import java.util.Collection;
 import java.util.List;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 
 public class Saml2UserDetails extends AbstractAuthenticationToken {
 
   private User user = null;
   private Saml2Authentication saml2Authentication = null;
-
-  private UserDetails userDetails;
-
-  public Saml2UserDetails(Saml2Authentication saml2Authentication, UserDetails userDetails) {
-    super(userDetails.getAuthorities());
-    this.saml2Authentication = saml2Authentication;
-    this.userDetails = userDetails;
-  }
 
   public Saml2UserDetails(Saml2Authentication saml2Authentication, User user) {
     super(user.getAuthorities());
@@ -45,12 +36,12 @@ public class Saml2UserDetails extends AbstractAuthenticationToken {
 
   @Override
   public String getName() {
-    return this.userDetails.getUsername();
+    return this.user.getUsername();
   }
 
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
-    List<GrantedAuthority> authorities = (List<GrantedAuthority>) this.userDetails.getAuthorities();
+    List<GrantedAuthority> authorities = (List<GrantedAuthority>) this.user.getAuthorities();
     return authorities;
   }
 
@@ -61,12 +52,12 @@ public class Saml2UserDetails extends AbstractAuthenticationToken {
 
   @Override
   public Object getDetails() {
-    return this.userDetails;
+    return this.user;
   }
 
   @Override
   public Object getPrincipal() {
-    return this.userDetails;
+    return this.user;
   }
 
   @Override
