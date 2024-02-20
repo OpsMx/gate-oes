@@ -30,13 +30,11 @@ public class Saml2UserAttributeMapping {
 
   private String firstName = "user.firstName";
   private String lastName = "user.lastName";
-  private Roles roles;
+  private Roles roles = new Roles();
   private String email = "user.email";
 
   @Data
-  @Configuration
-  @ConfigurationProperties(prefix = "spring.security.saml2.user-attribute-mapping.roles")
-  static class Roles {
+  public static class Roles {
     private String attributeName = "memberOf";
     private List<String> requiredRoles;
     private boolean sortRoles = false;
