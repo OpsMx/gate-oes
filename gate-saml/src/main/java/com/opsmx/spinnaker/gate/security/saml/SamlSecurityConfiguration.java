@@ -227,8 +227,6 @@ public class SamlSecurityConfiguration {
       String lastName = principal.getFirstAttribute(saml2UserAttributeMapping.getLastName());
       String email = principal.getFirstAttribute(saml2UserAttributeMapping.getEmail());
       Assertion assertion = responseToken.getResponse().getAssertions().get(0);
-      log.info("assertion : {}", assertion);
-      log.info("encrypted assertion : {}", responseToken.getResponse().getEncryptedAssertions());
       String username = assertion.getSubject().getNameID().getValue();
 
       if (rolesExtractedFromIDP != null) {
