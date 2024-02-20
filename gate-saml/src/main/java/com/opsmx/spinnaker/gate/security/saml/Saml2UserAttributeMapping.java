@@ -35,6 +35,7 @@ public class Saml2UserAttributeMapping {
 
   @Data
   public static class Roles {
+
     private String attributeName = "memberOf";
     private List<String> requiredRoles;
     private boolean sortRoles = false;

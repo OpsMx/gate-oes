@@ -2,7 +2,6 @@ dependencies {
   implementation project(":gate-core")
   implementation "io.spinnaker.kork:kork-swagger"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "io.swagger:swagger-annotations:1.6.2"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.okhttp3:okhttp"
   implementation "com.squareup.retrofit:retrofit"
