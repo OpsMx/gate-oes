@@ -80,7 +80,7 @@ RUN wget -O Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}-S
 RUN mv Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip /opt/gate/plugins/
 
 RUN chown -R spinnaker:spinnaker /opt/spinnaker
-
+RUN yum -y remove tar vim vi
 RUN chmod -R 777 /opt/gate/plugins/
 RUN chown -R spinnaker:spinnaker /opt/
 USER spinnaker
