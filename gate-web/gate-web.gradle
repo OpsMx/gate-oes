@@ -20,7 +20,7 @@ dependencies {
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:+"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-  implementation "com.google.guava:guava:31.1-jre"
+  implementation "com.google.guava:guava"
 
   implementation "com.squareup.okhttp:okhttp:2.7.5"
   implementation "com.squareup.okhttp:okhttp-urlconnection:2.7.5"
