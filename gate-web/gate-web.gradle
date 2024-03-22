@@ -51,6 +51,10 @@ dependencies {
 
   implementation "com.graphql-java-kickstart:graphql-spring-boot-starter:7.0.1"
   implementation "com.graphql-java-kickstart:graphql-java-tools:6.0.2"
+  implementation ("com.graphql-java:graphql-java:21.4") {
+    force(true)
+  }
+
   implementation "org.apache.groovy:groovy-json"
 
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
