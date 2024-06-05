@@ -40,9 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = Main)
 @ActiveProfiles('regexcors')
 @TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml", "retrofit.enabled=true"])
-class GateCorsRegexConfigSpec { /*extends Specification
+class GateCorsRegexConfigSpec extends Specification {
 
-  @Autowired
+    @Autowired
   private MockMvc mvc
 
   @MockBean ClouddriverService clouddriverService;
@@ -90,6 +90,6 @@ class GateCorsRegexConfigSpec { /*extends Specification
       .andReturn()
       .response
       .contentAsString.length() > 0 // Got some content.
-  }*/
+  }
 
 }

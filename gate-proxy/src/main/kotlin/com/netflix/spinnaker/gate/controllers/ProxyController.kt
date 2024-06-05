@@ -32,6 +32,7 @@ import java.net.SocketException
 import java.util.stream.Collectors
 import jakarta.servlet.http.HttpServletRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.HttpHeaders
@@ -135,10 +136,7 @@ class ProxyController(
       val method = request.method
 
       val body = if (HttpMethod.permitsRequestBody(method) && request.contentType != null) {
-        RequestBody.create(
-          request.contentType.toMediaTypeOrNull(),
-          request.reader.lines().collect(Collectors.joining(System.lineSeparator()))
-        )
+        request.reader.lines().collect(Collectors.joining(System.lineSeparator())).toRequestBody(request.contentType.toMediaTypeOrNull())
       } else {
         null
       }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.security.ldap
 
 import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
-import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
@@ -48,7 +47,7 @@ import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
 @Configuration
-@SpinnakerAuthConfig
+
 @EnableWebSecurity
 class LdapSsoConfig {
 

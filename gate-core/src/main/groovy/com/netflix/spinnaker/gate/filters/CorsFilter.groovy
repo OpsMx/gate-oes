@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.filters
 
-import com.netflix.spinnaker.gate.config.Headers
+
 import groovy.util.logging.Slf4j
 import net.logstash.logback.argument.StructuredArguments
 

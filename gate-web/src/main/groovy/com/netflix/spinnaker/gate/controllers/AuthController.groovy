@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -69,7 +68,7 @@ class AuthController {
 
   @Operation(summary = "Get user")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-  User user(@Parameter(hidden = true) @SpinnakerUser User user) {
+  User user(@Parameter(hidden = true) User user) {
     if (!user) {
       return user
     }
@@ -83,7 +82,7 @@ class AuthController {
 
   @Operation(summary = "Get service accounts")
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
-  List<String> getServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user,
+  List<String> getServiceAccounts(@Parameter(hidden = true) User user,
                                   @RequestParam(name = "application", required = false) String application) {
 
     String appName = Optional.ofNullable(application)

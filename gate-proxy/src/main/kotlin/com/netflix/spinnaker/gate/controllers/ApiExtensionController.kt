@@ -47,7 +47,7 @@ class ApiExtensionController @Autowired constructor(private val apiExtensionsPro
 
   init {
     val duplicateApiExtensionIds = apiExtensionsProvider.getIfAvailable { ArrayList() }
-      .groupBy { it.id().toLowerCase() }
+      .groupBy { it.id().lowercase() }
       .filter { it.value.size > 1 }
       .map { it.value }
       .flatten()

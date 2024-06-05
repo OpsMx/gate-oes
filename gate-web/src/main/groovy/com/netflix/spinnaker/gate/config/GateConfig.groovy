@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spectator.api.Registry
@@ -74,7 +75,7 @@ import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
 import redis.clients.jedis.JedisPool
 import retrofit.Endpoint
-import java.util.HashMap;
+
 
 import jakarta.servlet.*
 import java.util.concurrent.ExecutorService

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.config.GateConfig
 import com.netflix.spinnaker.gate.config.RedisTestConfig
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator
-import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.AccountLookupService
@@ -39,19 +38,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
-import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.MvcResult
-import org.springframework.util.Base64Utils
 import spock.lang.Specification
-
-import jakarta.servlet.http.Cookie
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @Slf4j
 @GateSystemTest

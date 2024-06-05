@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.security.ldap
 
 import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.config.RedisTestConfig
-import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfig.LdapConfigProps
@@ -35,15 +34,7 @@ import org.springframework.context.annotation.Primary
 import org.springframework.security.ldap.server.UnboundIdContainer
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.MvcResult
 import spock.lang.Specification
-
-import jakarta.servlet.http.Cookie
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 
 @Slf4j
 @GateSystemTest

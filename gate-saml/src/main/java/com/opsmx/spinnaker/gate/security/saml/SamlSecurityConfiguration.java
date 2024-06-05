@@ -20,7 +20,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
-import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.User;
@@ -60,7 +59,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 @Slf4j
 @Configuration
 @EnableWebSecurity
-@SpinnakerAuthConfig
 @ConditionalOnExpression("${spring.security.saml2.enabled:false}")
 public class SamlSecurityConfiguration {
 

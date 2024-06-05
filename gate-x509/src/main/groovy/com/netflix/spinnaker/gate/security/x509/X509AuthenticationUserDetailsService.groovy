@@ -131,9 +131,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     log.debug("Roles for user {}: {}", email, roles)
     return new User(
-        email: email,
-        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(email, roles),
-        roles: roles
+            email: email,
+            allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(email, roles),
+            roles: roles
     )
   }
 
@@ -150,7 +150,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
         final Optional<Instant> lastDebounced = Optional.ofNullable(loginDebounce.getIfPresent(email))
         boolean needsCachedPermission = !fiatPermissionEvaluator.hasCachedPermission(email)
         shouldLogin = needsCachedPermission ||
-          lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
+                lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
       } else {
         shouldLogin = true
       }
@@ -165,8 +165,8 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
       if (shouldLogin) {
         def id = registry
-          .createId("fiat.login")
-          .withTag("type", "x509")
+                .createId("fiat.login")
+                .withTag("type", "x509")
 
         try {
           retrySupport.retry({ ->
@@ -182,12 +182,12 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
           id = id.withTag("success", true).withTag("fallback", "none")
         } catch (Exception e) {
           log.warn(
-            "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
-            email,
-            roles.size(),
-            roles,
-            fiatClientConfigurationProperties.legacyFallback,
-            e
+                  "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+                  email,
+                  roles.size(),
+                  roles,
+                  fiatClientConfigurationProperties.legacyFallback,
+                  e
           )
           id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
 
