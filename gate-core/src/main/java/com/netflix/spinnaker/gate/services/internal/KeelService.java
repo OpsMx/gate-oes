@@ -17,7 +17,9 @@
  */
 package com.netflix.spinnaker.gate.services.internal;
 
-import com.netflix.spinnaker.gate.model.manageddelivery.*;
+import com.netflix.spinnaker.gate.model.manageddelivery.OverrideVerificationRequest;
+import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
+import com.netflix.spinnaker.gate.model.manageddelivery.RetryVerificationRequest;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
