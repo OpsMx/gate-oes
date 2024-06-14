@@ -20,7 +20,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
@@ -182,21 +181,12 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
           id = id.withTag("success", true).withTag("fallback", "none")
         } catch (Exception e) {
           log.warn(
-<<<<<<< HEAD
-                  "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
-                  email,
-                  roles.size(),
-                  roles,
-                  fiatClientConfigurationProperties.legacyFallback,
-                  e
-=======
             "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
             email,
             roles.size(),
             roles,
             fiatClientConfigurationProperties.legacyFallback,
             e
->>>>>>> a64fd1a6ba4e6402eea929720a5ff9107e55bcbc
           )
           id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
 

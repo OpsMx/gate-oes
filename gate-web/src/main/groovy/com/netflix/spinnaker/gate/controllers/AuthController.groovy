@@ -68,11 +68,8 @@ class AuthController {
 
   @Operation(summary = "Get user")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-<<<<<<< HEAD
   User user(@Parameter(hidden = true) User user) {
-=======
-  User user(@Parameter(hidden = true) @SpinnakerUser User user) {
->>>>>>> a64fd1a6ba4e6402eea929720a5ff9107e55bcbc
+
     if (!user) {
       return user
     }
@@ -86,12 +83,8 @@ class AuthController {
 
   @Operation(summary = "Get service accounts")
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
-<<<<<<< HEAD
-  List<String> getServiceAccounts(@Parameter(hidden = true) User user,
-=======
-  List<String> getServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user,
->>>>>>> a64fd1a6ba4e6402eea929720a5ff9107e55bcbc
-                                  @RequestParam(name = "application", required = false) String application) {
+
+  List<String> getServiceAccounts(@Parameter(hidden = true) User user,  @RequestParam(name = "application", required = false) String application) {
 
     String appName = Optional.ofNullable(application)
       .map({ s -> s.trim() })
