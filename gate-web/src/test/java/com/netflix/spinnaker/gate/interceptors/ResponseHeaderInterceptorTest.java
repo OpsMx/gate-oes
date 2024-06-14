@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
+import com.netflix.spinnaker.gate.services.internal.*;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.EnumSet;

@@ -136,7 +136,9 @@ class ProxyController(
       val method = request.method
 
       val body = if (HttpMethod.permitsRequestBody(method) && request.contentType != null) {
-        request.reader.lines().collect(Collectors.joining(System.lineSeparator())).toRequestBody(request.contentType.toMediaTypeOrNull())
+         RequestBody.create(
+          request.contentType.toMediaTypeOrNull(),
+          request.reader.lines().collect(Collectors.joining(System.lineSeparator()))
       } else {
         null
       }

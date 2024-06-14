@@ -50,6 +50,7 @@ class WebhookController {
       webhookService.webhooks(type, source, event)
     }
   }
+<<<<<<< HEAD
     @Operation(summary = "Endpoint for posting webhooks to Spinnaker's CDEvents webhook service")
     @RequestMapping(value = "/cdevents/{source}", method = RequestMethod.POST)
     ResponseEntity<Void> webhooks(@PathVariable String source,
@@ -58,6 +59,9 @@ class WebhookController {
     {
         webhookService.webhooks(source, cdevent, headers)
     }
+=======
+
+>>>>>>> a64fd1a6ba4e6402eea929720a5ff9107e55bcbc
   @Operation(summary = "Retrieve a list of preconfigured webhooks in Orca")
   @RequestMapping(value = "/preconfigured", method = RequestMethod.GET)
   List preconfiguredWebhooks() {

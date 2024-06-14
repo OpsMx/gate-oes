@@ -27,10 +27,12 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import io.swagger.v3.oas.annotations.Operation
 import java.lang.String.format
 import lombok.SneakyThrows
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
 import org.springframework.web.bind.annotation.PathVariable

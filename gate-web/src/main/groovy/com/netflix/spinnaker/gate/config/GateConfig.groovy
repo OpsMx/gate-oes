@@ -75,7 +75,7 @@ import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
 import redis.clients.jedis.JedisPool
 import retrofit.Endpoint
-
+import java.util.HashMap;
 
 import jakarta.servlet.*
 import java.util.concurrent.ExecutorService
