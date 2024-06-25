@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -68,8 +69,7 @@ class AuthController {
 
   @Operation(summary = "Get user")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-  User user(@Parameter(hidden = true) User user) {
-
+  User user(@Parameter(hidden = true) @SpinnakerUser User user) {
     if (!user) {
       return user
     }

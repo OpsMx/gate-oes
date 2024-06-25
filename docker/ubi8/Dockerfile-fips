@@ -15,12 +15,13 @@ RUN jlink --output runtime --add-modules `paste -sd, - < modules` --compress 2 -
 
 FROM registry.access.redhat.com/ubi8/ubi:8.8 AS java-base
 LABEL maintainer="OpsMx"
-COPY --from=java-builder /jrebuild/runtime /opsmx-java-runtime
+COPY --from=java-builder /jrebuild/runtime /${CUSTOMPLUGIN_RELEASEORG}-java-runtime
 ARG OPSMXUSER=1001
-ENV JAVA_HOME=/opsmx-java-runtime \
-    PATH=${PATH}:/opsmx-java-runtime/bin \
-    WORK_DIR=/opsmx/workdir \
-    CONF_DIR=/opsmx/conf
+ENV JAVA_HOME=/${CUSTOMPLUGIN_RELEASEORG}-java-runtime \
+    PATH=${PATH}:/${CUSTOMPLUGIN_RELEASEORG}-java-runtime/bin \
+    WORK_DIR=/${CUSTOMPLUGIN_RELEASEORG}/workdir \
+    CONF_DIR=/${CUSTOMPLUGIN_RELEASEORG}/conf
+ENV SERVICE_PLUGIN_PATH=/opt/gate/plugins
 
 # Enabling fips mode
 RUN fips-mode-setup --enable
@@ -37,51 +38,26 @@ RUN yum -y remove  tar
 RUN yum -y remove clean all && rm -rf /var/cache
 
 RUN adduser spinnaker
-RUN mkdir -p /opt/gate/plugins && mkdir -p /opt/spinnaker/plugins
-
-####adding customplugin zip 
-ARG CUSTOMPLUGIN_RELEASEVERSION
-ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
-COPY custom-plugin.json /opt/spinnaker/plugins/plugins.json
-RUN wget -O VerificationPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/VerificationPlugin-v1.0.1-SNAPSHOT.zip \
-    && wget -O TestVerificationPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/TestVerificationPlugin-v1.0.1-SNAPSHOT.zip \
-    && wget -O policyPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/policyPlugin-v1.0.1-SNAPSHOT.zip \
-    && wget -O ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip
-RUN mv VerificationPlugin-v1.0.1-SNAPSHOT.zip /opt/spinnaker/plugins/ \
-    && mv TestVerificationPlugin-v1.0.1-SNAPSHOT.zip /opt/spinnaker/plugins/ \
-    && mv policyPlugin-v1.0.1-SNAPSHOT.zip /opt/spinnaker/plugins/ \
-    && mv ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip /opt/spinnaker/plugins/ 
-
-RUN sed -i 's/"VERIFICATION_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/VerificationPlugin-v1.0.1-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/spinnaker/plugins/plugins.json \
-    && sed -i 's/"TESTVERIFICATION_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/TestVerificationPlugin-v1.0.1-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/spinnaker/plugins/plugins.json \
-    && sed -i 's/"POLICY_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/policyPlugin-v1.0.1-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/spinnaker/plugins/plugins.json \
-    && sed -i 's/"APPROVAL_SHASUM"/'\""$(sha512sum /opt/spinnaker/plugins/ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/spinnaker/plugins/plugins.json
-
-
-#COPY ./docker/ubi8/observability-plugin.json /opt/gate/plugins/plugins.json
-
-#RUN wget -O armory-observability-plugin-v1.0.0-SNAPSHOT.zip -c https://github.com/OpsMx/armory-observability-plugin/releases/download/v1.0.0/armory-observability-plugin-v1.4.2-SNAPSHOT.zip -P /opt/gate/plugins 
-#RUN mv armory-observability-plugin-v1.0.0-SNAPSHOT.zip /opt/gate/plugins/ 
-
-#RUN sed -i 's/"VERIFICATION_SHASUM"/'\""$(sha512sum /opt/gate/plugins/armory-observability-plugin-v1.0.0-SNAPSHOT.zip | awk '{print $1}')"\"'/g' /opt/gate/plugins/plugins.json 
+RUN mkdir -p ${SERVICE_PLUGIN_PATH} && mkdir -p /opt/spinnaker/plugins
 
 #custom plugin zip files adding
 ARG CUSTOMPLUGIN_RELEASEORG
 ENV CUSTOMPLUGIN_RELEASEORG=$CUSTOMPLUGIN_RELEASEORG
-
+ARG CUSTOMPLUGIN_RELEASEVERSION
+ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
+ARG CUSTOMPLUGIN_RELEASE_VERSION
+ENV CUSTOMPLUGIN_RELEASE_VERSION=$CUSTOMPLUGIN_RELEASE_VERSION
 ARG CUSTOMPLUGIN_RELEASEREPO
 ENV CUSTOMPLUGIN_RELEASEREPO=$CUSTOMPLUGIN_RELEASEREPO
 
-ARG CUSTOMPLUGIN_RELEASE_VERSION
-ENV CUSTOMPLUGIN_RELEASE_VERSION=$CUSTOMPLUGIN_RELEASE_VERSION
+RUN wget -O Armory.armory-observability-plugin-1.0.1.zip -c https://github.com/opsmx/armory-observability-plugin/releases/download/v1.0.1/armory-observability-plugin-v1.0.1.zip -P /opt/gate/plugins
+RUN mv Armory.armory-observability-plugin-1.0.1.zip /opt/gate/plugins
 
-RUN wget -O Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/${CUSTOMPLUGIN_RELEASEREPO}/releases/download/${CUSTOMPLUGIN_RELEASE_VERSION}/armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -P /opt/gate/plugins 
-
-RUN mv Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip /opt/gate/plugins/
+#COPY custom-plugin.json /opt/spinnaker/plugins/plugins.json
 
 RUN chown -R spinnaker:spinnaker /opt/spinnaker
 RUN yum -y remove tar vim vi
 RUN chmod -R 777 /opt/gate/plugins/
 RUN chown -R spinnaker:spinnaker /opt/
 USER spinnaker
-CMD ["/opt/gate/bin/gate"]
+CMD ["/opt/gate/bin/gate"]  

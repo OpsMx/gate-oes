@@ -20,6 +20,7 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
@@ -130,9 +131,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     log.debug("Roles for user {}: {}", email, roles)
     return new User(
-            email: email,
-            allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(email, roles),
-            roles: roles
+        email: email,
+        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(email, roles),
+        roles: roles
     )
   }
 
@@ -149,7 +150,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
         final Optional<Instant> lastDebounced = Optional.ofNullable(loginDebounce.getIfPresent(email))
         boolean needsCachedPermission = !fiatPermissionEvaluator.hasCachedPermission(email)
         shouldLogin = needsCachedPermission ||
-                lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
+          lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
       } else {
         shouldLogin = true
       }
@@ -164,8 +165,8 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
       if (shouldLogin) {
         def id = registry
-                .createId("fiat.login")
-                .withTag("type", "x509")
+          .createId("fiat.login")
+          .withTag("type", "x509")
 
         try {
           retrySupport.retry({ ->

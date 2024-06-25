@@ -18,8 +18,8 @@ package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("fiat.service-accounts.filter")
 public class ServiceAccountFilterConfigProps {
@@ -29,7 +29,7 @@ public class ServiceAccountFilterConfigProps {
   private final boolean enabled;
   private final Set<Authorization> matchAuthorizations;
 
-  @Autowired
+  @ConstructorBinding
   public ServiceAccountFilterConfigProps(Boolean enabled, List<Authorization> matchAuthorizations) {
     this.enabled = enabled == null ? true : enabled;
     if (matchAuthorizations == null) {

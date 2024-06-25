@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.ldap
 
 import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
+import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
 @Configuration
-
+@SpinnakerAuthConfig
 @EnableWebSecurity
 class LdapSsoConfig {
 
@@ -71,7 +72,6 @@ class LdapSsoConfig {
 
   @Autowired
   void ldapConfigure(AuthenticationManagerBuilder auth) throws Exception {
-
     def ldapConfigurer =
         auth.ldapAuthentication()
             .contextSource()
@@ -97,15 +97,13 @@ class LdapSsoConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(
-    AuthenticationConfiguration authConfig) throws Exception {
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig ) throws Exception {
     return authConfig.getAuthenticationManager();
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-    def authenticationManager = ctx.getBean("authenticationManager") as AuthenticationManager
+  public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
+    def authenticationManager = authConfiguration.getAuthenticationManager();//ctx.getBean("authenticationManager") as AuthenticationManager
     defaultCookieSerializer.setSameSite(null)
     http.formLogin()
     authConfig.configure(http)
@@ -131,12 +129,13 @@ class LdapSsoConfig {
     @Override
     UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
       def roles = sanitizeRoles(authorities)
+      log.info(" user :{}", username)
+      log.info(" roles :{}", roles)
       permissionService.loginWithRoles(username, roles)
-
-      return new User(username: username,
-                      email: ctx.getStringAttribute("mail"),
-                      roles: roles,
-                      allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
+      return user = new User(username: username,
+        email: ctx.getStringAttribute("mail"),
+        roles: roles,
+        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
     }
 
     @Override
