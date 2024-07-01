@@ -50,19 +50,8 @@ ENV CUSTOMPLUGIN_RELEASE_VERSION=$CUSTOMPLUGIN_RELEASE_VERSION
 ARG CUSTOMPLUGIN_RELEASEREPO
 ENV CUSTOMPLUGIN_RELEASEREPO=$CUSTOMPLUGIN_RELEASEREPO
 
-RUN wget -O Opsmx.VerificationGatePlugin-VerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/VerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/TestVerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.PolicyGatePlugin-policyPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/policyPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.PolicyGatePlugin-RbacPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/RbacPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/ApprovalStagePlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip  ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.PolicyGatePlugin-policyPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.PolicyGatePlugin-RbacPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH}
-
-RUN wget -O Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/${CUSTOMPLUGIN_RELEASEREPO}/releases/download/v${CUSTOMPLUGIN_RELEASE_VERSION}/armory-observability-plugin-v${CUSTOMPLUGIN_RELEASE_VERSION}.zip -P ${SERVICE_PLUGIN_PATH}
-RUN mv Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH}
-COPY custom-plugin.json /opt/spinnaker/plugins/plugins.json
+RUN wget -O Armory.armory-observability-plugin-1.0.1.zip -c https://github.com/opsmx/armory-observability-plugin/releases/download/v1.0.1/armory-observability-plugin-v1.0.1.zip -P /opt/gate/plugins
+RUN mv Armory.armory-observability-plugin-1.0.1.zip /opt/gate/plugins
 
 RUN chown -R spinnaker:spinnaker /opt/spinnaker
 RUN yum -y remove tar vim vi

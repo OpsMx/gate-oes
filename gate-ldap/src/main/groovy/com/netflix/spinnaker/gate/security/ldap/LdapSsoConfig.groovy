@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -45,7 +46,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
-
+@Slf4j
 @ConditionalOnExpression('${ldap.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
@@ -95,28 +96,32 @@ class LdapSsoConfig {
     if (ldapConfigProps.userSearchFilter) {
       ldapConfigurer.userSearchFilter(ldapConfigProps.userSearchFilter)
     }
+    log.info("************* Start Ldap Configurer calling ")
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(
-    AuthenticationConfiguration authConfig) throws Exception {
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+
+    log.info("*************authenticationManager intialize ")
     return authConfig.getAuthenticationManager();
   }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
+    log.info("*************Start ldap security filter chain")
     def authenticationManager = ctx.getBean("authenticationManager") as AuthenticationManager
     defaultCookieSerializer.setSameSite(null)
     http.formLogin()
     authConfig.configure(http)
     http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter)
     http.csrf().disable();
+    log.info("*************End ldap security filter chain")
     return http.build() as SecurityFilterChain
   }
 
   @Bean
   public WebSecurityCustomizer webSecurityCustomizer() {
+    log.info("*************webSecurityCustomizer intialize ")
     return (web) -> authConfig.configure(web)
   }
 
@@ -131,21 +136,30 @@ class LdapSsoConfig {
 
     @Override
     UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
+      log.info("*************Start of the mapUserFromContext LdapUserContextMapper ")
       def roles = sanitizeRoles(authorities)
       permissionService.loginWithRoles(username, roles)
-
-      return new User(username: username,
+      log.info(" user :{}", username)
+      log.info(" roles :{}", roles)
+      def user = new User(username: username,
                       email: ctx.getStringAttribute("mail"),
                       roles: roles,
                       allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
+      log.info("mapped user is: {}", user)
+      log.info(" map user from context")
+      log.info("*************End of the mapUserFromContext LdapUserContextMapper ")
+      return user
     }
 
     @Override
     void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
+      log.info("*************mapUserToContext LdapUserContextMapper ")
       throw new UnsupportedOperationException("Cannot save to LDAP server")
     }
 
     private static Set<String> sanitizeRoles(Collection<? extends GrantedAuthority> authorities) {
+      log.info("*************sanitizeRoles LdapUserContextMapper ")
+      log.info("authorities: {}", authorities)
       authorities.findResults {
         StringUtils.removeStartIgnoreCase(it.authority, "ROLE_")?.toLowerCase()
       }
