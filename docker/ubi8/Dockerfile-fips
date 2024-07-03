@@ -22,7 +22,7 @@ ENV JAVA_HOME=/${CUSTOMPLUGIN_RELEASEORG}-java-runtime \
     WORK_DIR=/${CUSTOMPLUGIN_RELEASEORG}/workdir \
     CONF_DIR=/${CUSTOMPLUGIN_RELEASEORG}/conf
 ENV SERVICE_PLUGIN_PATH=/opt/gate/plugins
-ENV CUSTOMGATE_PLUGIN_PATH=/opt/gate/plugins
+ENV CUSTOMGATE_PLUGIN_PATH=/opt/spinnaker/plugins
 # Enabling fips mode
 RUN fips-mode-setup --enable
 
