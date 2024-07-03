@@ -19,12 +19,15 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.WebhookService
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import io.cloudevents.CloudEvent
 
 @RestController
 @RequestMapping("/webhooks")
@@ -47,6 +50,14 @@ class WebhookController {
       webhookService.webhooks(type, source, event)
     }
   }
+    @Operation(summary = "Endpoint for posting webhooks to Spinnaker's CDEvents webhook service")
+    @RequestMapping(value = "/cdevents/{source}", method = RequestMethod.POST)
+    ResponseEntity<Void> webhooks(@PathVariable String source,
+                                  @RequestBody CloudEvent cdevent,
+                                  @RequestHeader HttpHeaders headers)
+    {
+        webhookService.webhooks(source, cdevent, headers)
+    }
 
   @Operation(summary = "Retrieve a list of preconfigured webhooks in Orca")
   @RequestMapping(value = "/preconfigured", method = RequestMethod.GET)

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.netflix.spectator.api.Registry
@@ -64,6 +65,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
@@ -142,6 +144,9 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Autowired
   ServiceConfiguration serviceConfiguration
+
+  @Autowired
+  Jackson2ObjectMapperBuilder objectMapperBuilder
 
   /**
    * This needs to be before the yaml converter in order for json to be the default
@@ -328,14 +333,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   private <T> T buildService(String serviceName, Class<T> type, Endpoint endpoint) {
-    // New role providers break deserialization if this is not enabled.
-    ObjectMapper objectMapper = new ObjectMapper()
-      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .registerModule(new JavaTimeModule())
-
+    ObjectMapper objectMapper = objectMapperBuilder.build() as ObjectMapper
+    if(serviceName.equals("echo")) {
+      objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+      objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false)
+    }
     serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint.url), objectMapper)
-
   }
 
   private <T> SelectableService createClientSelector(String serviceName, Class<T> type) {
@@ -367,8 +370,8 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  FilterRegistrationBean resetAuthenticatedRequestFilter() {
-    def frb = new FilterRegistrationBean(new ResetAuthenticatedRequestFilter())
+  FilterRegistrationBean<ResetAuthenticatedRequestFilter> resetAuthenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean<>(new ResetAuthenticatedRequestFilter())
     frb.order = Ordered.HIGHEST_PRECEDENCE
     return frb
   }
@@ -380,10 +383,10 @@ class GateConfig extends RedisHttpSessionConfiguration {
    * Additionally forwards request origin metadata (deck vs api).
    */
   @Bean
-  FilterRegistrationBean authenticatedRequestFilter() {
+  FilterRegistrationBean<AuthenticatedRequestFilter> authenticatedRequestFilter() {
     // no need to force the `AuthenticatedRequestFilter` to create a request id as that is
     // handled by the `RequestTimingFilter`.
-    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true, true, false, false))
+    def frb = new FilterRegistrationBean<>(new AuthenticatedRequestFilter(true, true, false, false))
     frb.order = Ordered.LOWEST_PRECEDENCE - 1
     return frb
   }
@@ -404,8 +407,8 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Bean
   @ConditionalOnProperty("request-logging.enabled")
-  FilterRegistrationBean requestLoggingFilter() {
-    def frb = new FilterRegistrationBean(new RequestLoggingFilter())
+  FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilter() {
+    def frb = new FilterRegistrationBean<>(new RequestLoggingFilter())
     // this filter should be placed very early in the request chain to ensure we track an accurate start time and
     // have a request id available to propagate across thread and service boundaries.
     frb.order = Ordered.HIGHEST_PRECEDENCE + 1
@@ -413,8 +416,8 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  FilterRegistrationBean requestSheddingFilter(DynamicConfigService dynamicConfigService) {
-    def frb = new FilterRegistrationBean(new RequestSheddingFilter(dynamicConfigService, registry))
+  FilterRegistrationBean<RequestSheddingFilter> requestSheddingFilter(DynamicConfigService dynamicConfigService) {
+    def frb = new FilterRegistrationBean<>(new RequestSheddingFilter(dynamicConfigService, registry))
 
     /*
      * This filter should:

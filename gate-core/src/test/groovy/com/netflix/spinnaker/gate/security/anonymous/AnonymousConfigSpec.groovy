@@ -34,9 +34,9 @@ class AnonymousConfigSpec extends Specification {
 
     and:
     AnonymousConfig config = new AnonymousConfig(
-      anonymousAllowedAccounts: new CopyOnWriteArrayList<String>(oldAccounts),
-      credentialsService: credentialsService,
-      fiatStatus: fiatStatus
+            anonymousAllowedAccounts: new CopyOnWriteArrayList<String>(oldAccounts),
+            credentialsService: credentialsService,
+            fiatStatus: fiatStatus
     )
 
     when:

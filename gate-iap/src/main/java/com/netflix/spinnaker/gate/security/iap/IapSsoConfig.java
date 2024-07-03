@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.security.iap;
 
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.gate.config.AuthConfig;
-import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.security.iap.IapSsoConfig.IapSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
@@ -44,7 +43,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  */
 @Slf4j
 @Configuration
-@SpinnakerAuthConfig
 @EnableWebSecurity
 @ConditionalOnExpression("${google.iap.enabled:false}")
 @EnableConfigurationProperties(IapSecurityConfigProperties.class)

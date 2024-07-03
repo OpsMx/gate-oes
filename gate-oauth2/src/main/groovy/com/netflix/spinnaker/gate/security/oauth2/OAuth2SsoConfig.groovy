@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.security.oauth2
 
 import com.netflix.spinnaker.gate.config.AuthConfig
-import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails
@@ -46,7 +44,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
 @Configuration
-@SpinnakerAuthConfig
+
 @EnableWebSecurity
 @EnableOAuth2Sso
 @EnableConfigurationProperties
@@ -86,10 +84,6 @@ class OAuth2SsoConfig {
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
     http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager()), UsernamePasswordAuthenticationFilter)
     http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class) as SecurityFilterChain
-  }
-
-  void configure(WebSecurity web) throws Exception {
-    authConfig.configure(web)
   }
 
   /**

@@ -85,11 +85,11 @@ class PermissionServiceSpec extends Specification {
 
   private RetrofitError conversionError(int code) {
     RetrofitError.conversionError(
-      'http://foo',
-      new Response('http://foo', code, 'you are bad', [], null),
-      null,
-      null,
-      new ConversionException('boom'))
+            'http://foo',
+            new Response('http://foo', code, 'you are bad', [], null),
+            null,
+            null,
+            new ConversionException('boom'))
   }
 
   private RetrofitError networkError() {
@@ -102,10 +102,10 @@ class PermissionServiceSpec extends Specification {
 
   private RetrofitError httpRetrofitError(int code) {
     RetrofitError.httpError(
-      'http://foo',
-      new Response('http://foo', code, 'you are bad', [], null),
-      null,
-      null)
+            'http://foo',
+            new Response('http://foo', code, 'you are bad', [], null),
+            null,
+            null)
   }
 
 
@@ -124,10 +124,10 @@ class PermissionServiceSpec extends Specification {
     def result = hasResult ? lookupResult : []
 
     def subject = new PermissionService(
-      fiatStatus: fiatStatus,
-      permissionEvaluator: permissionEvaluator,
-      extendedFiatService: extendedFiatService,
-      serviceAccountFilterConfigProps: cfgProps)
+            fiatStatus: fiatStatus,
+            permissionEvaluator: permissionEvaluator,
+            extendedFiatService: extendedFiatService,
+            serviceAccountFilterConfigProps: cfgProps)
 
     when:
     subject.getServiceAccountsForApplication(user, application)

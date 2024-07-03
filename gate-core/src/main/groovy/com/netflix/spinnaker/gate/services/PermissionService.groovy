@@ -22,7 +22,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
-import com.netflix.spinnaker.gate.security.SpinnakerUser
+
 import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
@@ -145,7 +145,7 @@ class PermissionService {
     }
   }
 
-  List<String> getServiceAccountsForApplication(@SpinnakerUser User user, @Nonnull String application) {
+  List<String> getServiceAccountsForApplication(User user, @Nonnull String application) {
     if (!serviceAccountFilterConfigProps.enabled ||
         !user ||
         !application ||
@@ -175,7 +175,7 @@ class PermissionService {
     return filteredServiceAccounts ?: getServiceAccounts(user)
   }
 
-  List<String> getServiceAccounts(@SpinnakerUser User user) {
+  List<String> getServiceAccounts(User user) {
 
     if (!user) {
       log.debug("getServiceAccounts: Spinnaker user is null.")

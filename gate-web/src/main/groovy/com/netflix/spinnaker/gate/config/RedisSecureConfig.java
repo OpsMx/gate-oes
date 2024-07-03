@@ -25,9 +25,9 @@ public class RedisSecureConfig {
 
   /**
    * Always disable the ConfigureRedisAction that Spring Boot uses internally. Instead, we use one
-   * qualified with @ConnectionPostProcessor. See
-   * {@link PostConnectionConfiguringJedisConnectionFactory, GateConfig}.
-   * */
+   * qualified with @ConnectionPostProcessor. See {@link
+   * PostConnectionConfiguringJedisConnectionFactory, GateConfig}.
+   */
   @Bean
   @PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
   @ConditionalOnProperty("redis.configuration.secure")

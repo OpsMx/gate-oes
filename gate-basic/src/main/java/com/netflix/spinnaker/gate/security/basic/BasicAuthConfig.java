@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.security.basic;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
-import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -31,7 +30,6 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @ConditionalOnExpression("${security.basicform.enabled:false}")
 @Configuration
-@SpinnakerAuthConfig
 @EnableWebSecurity
 public class BasicAuthConfig {
 

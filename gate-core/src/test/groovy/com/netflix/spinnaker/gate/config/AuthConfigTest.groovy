@@ -26,6 +26,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.util.matcher.AnyRequestMatcher
 import spock.lang.Specification
+
 import java.util.stream.Collectors
 
 class AuthConfigTest extends Specification {

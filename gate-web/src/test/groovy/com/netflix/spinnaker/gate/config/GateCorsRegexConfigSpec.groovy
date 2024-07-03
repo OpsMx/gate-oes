@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml", "retrofit.enabled=true"])
 class GateCorsRegexConfigSpec { /*extends Specification
 
-  @Autowired
+    @Autowired
   private MockMvc mvc
 
   @MockBean ClouddriverService clouddriverService;
