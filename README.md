@@ -12,6 +12,7 @@ The REST API fronts the following services:
 ### Modular builds
 By default, Gate is built with all authentication providers included. To build only a subset of
 providers, use the `includeProviders` flag:
+
  ```
 ./gradlew -PincludeProviders=oauth2,x509 clean build 
 ```
