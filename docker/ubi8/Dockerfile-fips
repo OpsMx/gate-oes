@@ -23,6 +23,7 @@ ENV JAVA_HOME=/${CUSTOMPLUGIN_RELEASEORG}-java-runtime \
     CONF_DIR=/${CUSTOMPLUGIN_RELEASEORG}/conf
 ENV SERVICE_PLUGIN_PATH=/opt/gate/plugins
 ENV CUSTOMGATE_PLUGIN_PATH=/opt/spinnaker/plugins
+
 # Enabling fips mode
 RUN fips-mode-setup --enable
 
@@ -38,7 +39,9 @@ RUN yum -y remove  tar
 RUN yum -y remove clean all && rm -rf /var/cache
 
 RUN adduser spinnaker
+
 RUN mkdir -p ${SERVICE_PLUGIN_PATH} && mkdir -p ${CUSTOMGATE_PLUGIN_PATH}
+
 
 #custom plugin zip files adding
 ARG CUSTOMPLUGIN_RELEASEORG
@@ -49,6 +52,7 @@ ARG CUSTOMPLUGIN_RELEASE_VERSION
 ENV CUSTOMPLUGIN_RELEASE_VERSION=$CUSTOMPLUGIN_RELEASE_VERSION
 ARG CUSTOMPLUGIN_RELEASEREPO
 ENV CUSTOMPLUGIN_RELEASEREPO=$CUSTOMPLUGIN_RELEASEREPO
+
 
 RUN wget -O Opsmx.VerificationGatePlugin-VerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/VerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
    && wget -O Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/TestVerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
@@ -68,6 +72,7 @@ RUN chown -R spinnaker:spinnaker /opt/spinnaker
 RUN yum -y remove tar vim vi
 RUN chmod -R 777 ${SERVICE_PLUGIN_PATH}/
 RUN chmod -R 777 ${CUSTOMGATE_PLUGIN_PATH}/
+
 RUN chown -R spinnaker:spinnaker /opt/
 USER spinnaker
 CMD ["/opt/gate/bin/gate"]  
