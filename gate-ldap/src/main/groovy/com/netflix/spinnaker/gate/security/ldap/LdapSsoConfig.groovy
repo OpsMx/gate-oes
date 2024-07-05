@@ -129,13 +129,12 @@ class LdapSsoConfig {
     @Override
     UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
       def roles = sanitizeRoles(authorities)
-      log.info(" user :{}", username)
-      log.info(" roles :{}", roles)
       permissionService.loginWithRoles(username, roles)
-      return user = new User(username: username,
-        email: ctx.getStringAttribute("mail"),
-        roles: roles,
-        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
+
+      return new User(username: username,
+                      email: ctx.getStringAttribute("mail"),
+                      roles: roles,
+                      allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
     }
 
     @Override
