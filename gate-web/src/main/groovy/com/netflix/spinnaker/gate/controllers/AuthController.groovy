@@ -83,8 +83,7 @@ class AuthController {
 
   @Operation(summary = "Get service accounts")
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
-
-  List<String> getServiceAccounts(@Parameter(hidden = true) User user,  @RequestParam(name = "application", required = false) String application) {
+  List<String> getServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user, @RequestParam(name = "application", required = false) String application) {
 
     String appName = Optional.ofNullable(application)
       .map({ s -> s.trim() })
