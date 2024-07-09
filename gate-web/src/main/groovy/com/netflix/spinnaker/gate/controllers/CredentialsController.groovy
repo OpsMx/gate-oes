@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
-
+import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
@@ -63,7 +63,7 @@ class CredentialsController {
 
   @Operation(summary = "Retrieve a list of accounts")
   @RequestMapping(method = RequestMethod.GET)
-  List<Account> getAccounts(User user, @RequestParam(value = "expand", required = false) boolean expand) {
+  List<Account> getAccounts(@SpinnakerUser User user, @RequestParam(value = "expand", required = false) boolean expand) {
     List<AccountDetails> allAccounts = getAccountDetailsWithAuthorizedFlag(user)
     if (expand) {
       return allAccounts
@@ -85,7 +85,7 @@ class CredentialsController {
 
   @Operation(summary = "Retrieve an account's details")
   @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
-  AccountDetails getAccount(User user, @PathVariable("account") String account,
+  AccountDetails getAccount(@SpinnakerUser User user, @PathVariable("account") String account,
                             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return getAccountDetailsWithAuthorizedFlag(user).find { it.name == account }
   }
