@@ -35,7 +35,7 @@ jobs:
           echo ::set-output name=REPO::ubi8-gate-cve
           #echo ::set-output name=VERSION::"1.33.x$(date --utc +'%Y%m%d')"
           #echo ::set-output name=VERSION::"1.33.x$(date --utc +'%-m%d')"
-          echo ::set-output name=VERSION::"1.33.2"
+          echo ::set-output name=VERSION::"1.33.3"
           echo "::set-output name=GITHASH::$(git rev-parse --short HEAD)"
           echo "::set-output name=BUILDDATE::$(date -u +"%Y%m%d%H%M")"
       - name: Login to Quay
