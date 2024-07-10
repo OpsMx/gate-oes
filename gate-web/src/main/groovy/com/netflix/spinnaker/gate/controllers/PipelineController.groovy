@@ -272,7 +272,7 @@ class PipelineController {
   }
 
   @Operation(summary = "Trigger a pipeline execution")
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE') && hasPermission(#pipelineNameOrId, 'PIPELINE', 'EXECUTE')")
   @PostMapping("/v2/{application}/{pipelineNameOrId:.+}")
   HttpEntity invokePipelineConfigViaEcho(@PathVariable("application") String application,
                                          @PathVariable("pipelineNameOrId") String pipelineNameOrId,
