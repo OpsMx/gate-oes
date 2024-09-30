@@ -5,7 +5,7 @@ on:
   push:
     branches:
     - OES-1.33.x
- 
+
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
   CONTAINER_REGISTRY: quay.io/opsmxpublic
@@ -30,8 +30,8 @@ jobs:
         id: build_variables
         run: |
           echo Build number is ${{ github.run_number }}
-          
-          echo git tag is  ${GITHUB_REF#refs/*/}
+
+           echo git tag is ${GITHUB_REF#refs/*/}
           echo ::set-output name=REPO::ubi8-gate-cve
           #echo ::set-output name=VERSION::"1.33.x$(date --utc +'%Y%m%d')"
           #echo ::set-output name=VERSION::"1.33.x$(date --utc +'%-m%d')"
@@ -55,8 +55,8 @@ jobs:
               sed  -e 's|NEXUS_PASSWORD|${{ secrets.NEXUS_PASSWORD }}|' -i build.gradle
               sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i settings.gradle
               sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i build.gradle
-        
-              ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+
+              ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test
 
       - name: dockerBuildpush
         uses: docker/build-push-action@v2
@@ -70,9 +70,9 @@ jobs:
           file: docker/ubi8/Dockerfile-fips
           push: true
           tags: |
-           
+
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-${{ steps.build_variables.outputs.GITHASH }}-${{ steps.build_variables.outputs.BUILDDATE }}"
-    
+
       - name: dockerBuildpushdev
         uses: docker/build-push-action@v2
         with:
@@ -86,4 +86,4 @@ jobs:
           push: true
           tags: |
            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-${{ steps.build_variables.outputs.GITHASH }}-${{ steps.build_variables.outputs.BUILDDATE }}-dev"
-    
+
