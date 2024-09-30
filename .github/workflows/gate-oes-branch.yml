@@ -35,8 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: ${{ inputs.org }}/gate-oes
-          ref: refs/heads/${{ inputs.branch }}
+          fetch-depth: 0
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -45,6 +44,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Prepare build variables
         id: build_variables
         run: |
@@ -52,7 +52,11 @@ jobs:
           
            echo git tag is ${GITHUB_REF#refs/*/}
           echo ::set-output name=REPO::ubi8-gate-cve
-          echo ::set-output name=VERSION::"1.30.1$(date --utc +'%Y%m%d')"
+          #echo ::set-output name=VERSION::"1.33.x$(date --utc +'%Y%m%d')"
+          #echo ::set-output name=VERSION::"1.33.x$(date --utc +'%-m%d')"
+          echo ::set-output name=VERSION::"1.33.3"
+          echo "::set-output name=GITHASH::$(git rev-parse --short HEAD)"
+          echo "::set-output name=BUILDDATE::$(date -u +"%Y%m%d%H%M")"
       - name: Login to Quay
         uses: docker/login-action@v1
         # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
@@ -64,14 +68,14 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
         run: |
-            sed  -e 's|NEXUS_USERNAME|${{ secrets.NEXUS_USERNAME }}|' -i settings.gradle
-            sed  -e 's|NEXUS_PASSWORD|${{ secrets.NEXUS_PASSWORD }}|' -i settings.gradle
-            sed  -e 's|NEXUS_USERNAME|${{ secrets.NEXUS_USERNAME }}|' -i build.gradle
-            sed  -e 's|NEXUS_PASSWORD|${{ secrets.NEXUS_PASSWORD }}|' -i build.gradle
-            sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i settings.gradle
-            sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i build.gradle
+              sed  -e 's|NEXUS_USERNAME|${{ secrets.NEXUS_USERNAME }}|' -i settings.gradle
+              sed  -e 's|NEXUS_PASSWORD|${{ secrets.NEXUS_PASSWORD }}|' -i settings.gradle
+              sed  -e 's|NEXUS_USERNAME|${{ secrets.NEXUS_USERNAME }}|' -i build.gradle
+              sed  -e 's|NEXUS_PASSWORD|${{ secrets.NEXUS_PASSWORD }}|' -i build.gradle
+              sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i settings.gradle
+              sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i build.gradle
         
-            ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
+              ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
 
       - name: dockerBuildpush
         uses: docker/build-push-action@v2
@@ -79,17 +83,26 @@ jobs:
           context: .
           build-args: |
             CUSTOMPLUGIN_RELEASEVERSION=4.0.4.2-rc5
+            CUSTOMPLUGIN_RELEASEORG=opsmx
+            CUSTOMPLUGIN_RELEASEREPO=armory-observability-plugin
+            CUSTOMPLUGIN_RELEASE_VERSION=1.0.1
           file: docker/ubi8/Dockerfile-fips
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}" 
+           
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-${{ steps.build_variables.outputs.GITHASH }}-${{ steps.build_variables.outputs.BUILDDATE }}"
+    
       - name: dockerBuildpushdev
         uses: docker/build-push-action@v2
         with:
           context: .
           build-args: |
-            CUSTOMPLUGIN_RELEASEVERSION=4.0.4-custom
+            CUSTOMPLUGIN_RELEASEVERSION=4.0.4.2-rc5
+            CUSTOMPLUGIN_RELEASEORG=opsmx
+            CUSTOMPLUGIN_RELEASEREPO=armory-observability-plugin
+            CUSTOMPLUGIN_RELEASE_VERSION=1.0.1
           file: docker/ubi8/Dockerfile-dev
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-dev"
+           "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-${{ steps.build_variables.outputs.GITHASH }}-${{ steps.build_variables.outputs.BUILDDATE }}-dev"
+    
