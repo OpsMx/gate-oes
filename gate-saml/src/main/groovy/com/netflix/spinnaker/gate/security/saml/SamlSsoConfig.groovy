@@ -58,7 +58,7 @@ import java.security.KeyStore
 
 import static org.springframework.security.extensions.saml2.config.SAMLConfigurer.saml
 
-@ConditionalOnExpression('${spring.security.saml2.enabled:false}')
+@ConditionalOnExpression('${saml.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity

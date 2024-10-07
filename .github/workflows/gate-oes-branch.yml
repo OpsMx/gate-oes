@@ -14,7 +14,7 @@ on:
         # Input has to be provided for the workflow to run
         required: true
         # The data type of the input
-        type: string
+        type: string 
       branch:
         # Friendly description to be shown in the UI instead of 'name'
         description: 'Branch name'
@@ -23,8 +23,8 @@ on:
         # Input has to be provided for the workflow to run
         required: true
         # The data type of the input
-        type: string
-
+        type: string 
+ 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
   CONTAINER_REGISTRY: quay.io/opsmxpublic
@@ -49,7 +49,7 @@ jobs:
         id: build_variables
         run: |
           echo Build number is ${{ github.run_number }}
-
+          
            echo git tag is ${GITHUB_REF#refs/*/}
           echo ::set-output name=REPO::ubi8-gate-cve
           echo ::set-output name=VERSION::"1.30.1$(date --utc +'%Y%m%d')"
@@ -70,8 +70,8 @@ jobs:
             sed  -e 's|NEXUS_PASSWORD|${{ secrets.NEXUS_PASSWORD }}|' -i build.gradle
             sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i settings.gradle
             sed  -e 's|NEXUS_URL|${{ secrets.NEXUS_URL }}|' -i build.gradle
-
-            ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test
+        
+            ./gradlew --no-daemon -PenableCrossCompilerPlugin=true gate-web:installDist -x test 
 
       - name: dockerBuildpush
         uses: docker/build-push-action@v2
@@ -82,7 +82,7 @@ jobs:
           file: docker/ubi8/Dockerfile-fips
           push: true
           tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}" 
       - name: dockerBuildpushdev
         uses: docker/build-push-action@v2
         with:
