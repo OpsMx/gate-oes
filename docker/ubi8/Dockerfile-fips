@@ -33,7 +33,9 @@ RUN update-crypto-policies --set FIPS
 COPY ./gate-web/build/install/gate /opt/gate
 #RUN yum -y install java-17-openjdk-devel vim curl net-tools nettle
 
-RUN yum -y install  wget 
+#cve fix 
+RUN yum install wget  krb5-libs-1.18.2-29.el8_10  expat-2.2.5-15.el8_10 -y
+RUN yum install ca-certificates-2024.2.69_v8.0.303-80.0.el8_10 -y
 
 RUN yum -y remove  tar  
 RUN yum -y remove clean all && rm -rf /var/cache
