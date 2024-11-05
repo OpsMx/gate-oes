@@ -33,9 +33,10 @@ RUN update-crypto-policies --set FIPS
 COPY ./gate-web/build/install/gate /opt/gate
 #RUN yum -y install java-17-openjdk-devel vim curl net-tools nettle
 
-#cve fix 
-RUN yum install wget  krb5-libs-1.18.2-29.el8_10  expat-2.2.5-15.el8_10 -y
-RUN yum install ca-certificates-2024.2.69_v8.0.303-80.0.el8_10 -y
+#cvefix
+RUN yum -y install wget ca-certificates-2024.2.69_v8.0.303-80.0.el8_10 expat-2.2.5-15.el8_10
+RUN wget https://fr2.rpmfind.net/linux/almalinux/8.10/BaseOS/x86_64/os/Packages/krb5-libs-1.18.2-29.el8_10.x86_64.rpm
+RUN rpm -Uvh --force  krb5-libs-1.18.2-29.el8_10.x86_64.rpm
 
 RUN yum -y remove  tar  
 RUN yum -y remove clean all && rm -rf /var/cache
