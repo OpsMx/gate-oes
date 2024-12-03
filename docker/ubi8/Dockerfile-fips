@@ -34,7 +34,7 @@ COPY ./gate-web/build/install/gate /opt/gate
 #RUN yum -y install java-17-openjdk-devel vim curl net-tools nettle
 
 #cve fix 
-RUN yum -y install wget 
+RUN yum -y install wget  bzip2-libs
 RUN yum install ca-certificates-2024.2.69_v8.0.303-80.0.el8_10  -y
 
 RUN wget https://tsn.miraclelinux.com/system/files/AXS8/x86_64/UPDATE/RPMS/expat-2.2.5-15.el8_10.x86_64.rpm
