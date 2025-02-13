@@ -2,11 +2,13 @@ FROM registry.access.redhat.com/ubi8/ubi:8.8 as java-builder
 LABEL maintainer="OpsMx"
 
 ARG JAVA_PACKAGE=java-17-openjdk-jmods
-RUN yum -y update && yum -y install --nodocs ${JAVA_PACKAGE}
+RUN yum -y update && \
+    yum -y install --nodocs ${JAVA_PACKAGE} && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
 # Build a custom JRE.
-# For now, we will include all modules.  We could try to remove the ones
-# we don't need to reduce image size and security attack surface.
+
 WORKDIR /jrebuild
 RUN java --list-modules | cut -d'@' -f1 > modules
 RUN jlink --output runtime --add-modules `paste -sd, - < modules` --compress 2 --vm server
@@ -14,14 +16,14 @@ RUN jlink --output runtime --add-modules `paste -sd, - < modules` --compress 2 -
 # Build a minimal base image with our custom Java installed.
 
 FROM registry.access.redhat.com/ubi8/ubi:8.8 AS java-base
-LABEL maintainer="OpsMx"
-COPY --from=java-builder /jrebuild/runtime /opsmx-java-runtime
+COPY --from=java-builder /jrebuild/runtime /${CUSTOMPLUGIN_RELEASEORG}-java-runtime
 ARG OPSMXUSER=1001
-ENV JAVA_HOME=/opsmx-java-runtime \
-    PATH=${PATH}:/opsmx-java-runtime/bin \
-    WORK_DIR=/opsmx/workdir \
-    CONF_DIR=/opsmx/conf
-ENV SERVICE_PLUGIN_PATH=/opt/gate/plugins
+ENV JAVA_HOME=/${CUSTOMPLUGIN_RELEASEORG}-java-runtime \
+    PATH=${PATH}:/${CUSTOMPLUGIN_RELEASEORG}-java-runtime/bin \
+    WORK_DIR=/${CUSTOMPLUGIN_RELEASEORG}/workdir \
+    CONF_DIR=/${CUSTOMPLUGIN_RELEASEORG}/conf \
+    SERVICE_PLUGIN_PATH=/opt/gate/plugins \
+    CUSTOMGATE_PLUGIN_PATH=/opt/spinnaker/plugins
 
 # Enabling fips mode
 RUN fips-mode-setup --enable
@@ -34,43 +36,65 @@ RUN mkdir -p /opt/jaeger
 COPY ./jaeger/opentelemetry-javaagent.jar /opt/jaeger/opentelemetry-javaagent.jar
 #RUN yum -y install java-17-openjdk-devel vim curl net-tools nettle
 
-RUN yum -y install  wget 
+##CVE-2019-12900,CVE-2021-43618
 
-RUN yum -y remove  tar  
-RUN yum -y remove clean all && rm -rf /var/cache
+RUN dnf -y update  gnutls python3-idna python3-urllib3 libxml2 openldap sqlite-libs && dnf clean all
+
+# Verify the updated versions
+RUN rpm -q python3-urllib3 libxml2 openldap sqlite-libs 
+
+# Install or upgrade Python (optional version 3.6 or 3.8)
+RUN yum -y install python3 && yum clean all
+
+# Verify Python version
+RUN python3 --version
+
+RUN yum -y install wget  bzip2-libs-1.0.6-28.el8_10 -y
+RUN yum install ca-certificates-2024.2.69_v8.0.303-80.0.el8_10  gmp-6.1.2-11.el8 -y
+
+RUN wget https://tsn.miraclelinux.com/system/files/AXS8/x86_64/UPDATE/RPMS/expat-2.2.5-16.el8_10.x86_64.rpm
+RUN rpm -Uvh --force expat-2.2.5-16.el8_10.x86_64.rpm
+
+RUN wget https://fr2.rpmfind.net/linux/almalinux/8.10/BaseOS/x86_64/os/Packages/krb5-libs-1.18.2-30.el8_10.x86_64.rpm
+RUN rpm -Uvh --force  krb5-libs-1.18.2-30.el8_10.x86_64.rpm 
 
 RUN adduser spinnaker
-RUN mkdir -p ${SERVICE_PLUGIN_PATH} && mkdir -p /opt/spinnaker/plugins
+RUN mkdir -p ${SERVICE_PLUGIN_PATH} && mkdir -p ${CUSTOMGATE_PLUGIN_PATH}
 
 #custom plugin zip files adding
+ARG CUSTOMPLUGIN_RELEASEVERSION_PLUGIN
+ENV CUSTOMPLUGIN_RELEASEVERSION_PLUGIN=$CUSTOMPLUGIN_RELEASEVERSION_PLUGIN
 ARG CUSTOMPLUGIN_RELEASEORG
 ENV CUSTOMPLUGIN_RELEASEORG=$CUSTOMPLUGIN_RELEASEORG
-ARG CUSTOMPLUGIN_RELEASEVERSION
-ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
 ARG CUSTOMPLUGIN_RELEASE_VERSION
 ENV CUSTOMPLUGIN_RELEASE_VERSION=$CUSTOMPLUGIN_RELEASE_VERSION
 ARG CUSTOMPLUGIN_RELEASEREPO
 ENV CUSTOMPLUGIN_RELEASEREPO=$CUSTOMPLUGIN_RELEASEREPO
 
-RUN wget -O Opsmx.VerificationGatePlugin-VerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/VerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/TestVerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.PolicyGatePlugin-policyPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/policyPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.PolicyGatePlugin-RbacPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/RbacPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-   && wget -O Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION}/ApprovalStagePlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip  ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.PolicyGatePlugin-policyPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.PolicyGatePlugin-RbacPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH} \
-    && mv Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH}
+
+RUN wget -O Opsmx.VerificationGatePlugin-VerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION_PLUGIN}/VerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
+   && wget -O Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION_PLUGIN}/TestVerificationPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
+   && wget -O Opsmx.PolicyGatePlugin-policyPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION_PLUGIN}/policyPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
+   && wget -O Opsmx.PolicyGatePlugin-RbacPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION_PLUGIN}/RbacPlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
+   && wget -O Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c  https://github.com/${CUSTOMPLUGIN_RELEASEORG}/Customplugins/releases/download/v${CUSTOMPLUGIN_RELEASEVERSION_PLUGIN}/ApprovalStagePlugin-v${CUSTOMPLUGIN_RELEASE_VERSION}-SNAPSHOT.zip -P ${CUSTOMGATE_PLUGIN_PATH} \
+    && mv Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip  ${CUSTOMGATE_PLUGIN_PATH} \
+    && mv Opsmx.PolicyGatePlugin-policyPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${CUSTOMGATE_PLUGIN_PATH} \
+    && mv Opsmx.PolicyGatePlugin-RbacPlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${CUSTOMGATE_PLUGIN_PATH} \
+    && mv Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${CUSTOMGATE_PLUGIN_PATH}
 
 RUN wget -O Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip -c https://github.com/${CUSTOMPLUGIN_RELEASEORG}/${CUSTOMPLUGIN_RELEASEREPO}/releases/download/v${CUSTOMPLUGIN_RELEASE_VERSION}/armory-observability-plugin-v${CUSTOMPLUGIN_RELEASE_VERSION}.zip -P ${SERVICE_PLUGIN_PATH}
 RUN mv Armory.armory-observability-plugin-${CUSTOMPLUGIN_RELEASE_VERSION}.zip ${SERVICE_PLUGIN_PATH}
-
 COPY custom-plugin.json /opt/spinnaker/plugins/plugins.json
 
 #COPY ./docker/ubi8/observability-plugin.json /opt/gate/plugins/plugins.json
 
 RUN chown -R spinnaker:spinnaker /opt/spinnaker
 RUN chmod -R 777 ${SERVICE_PLUGIN_PATH}/
+RUN chmod -R 777 ${CUSTOMGATE_PLUGIN_PATH}/
+
 RUN chown -R spinnaker:spinnaker /opt/
+RUN yum -y remove  tar  vim vi
+RUN yum -y remove clean all && rm -rf /var/cache
+
 USER spinnaker
-CMD ["/opt/gate/bin/gate"]
+CMD ["/opt/gate/bin/gate"]  
