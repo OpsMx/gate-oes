@@ -21,8 +21,8 @@ ARG OPSMXUSER=1001
 ENV JAVA_HOME=/${CUSTOMPLUGIN_RELEASEORG}-java-runtime \
     PATH=${PATH}:/${CUSTOMPLUGIN_RELEASEORG}-java-runtime/bin \
     WORK_DIR=/${CUSTOMPLUGIN_RELEASEORG}/workdir \
-    CONF_DIR=/${CUSTOMPLUGIN_RELEASEORG}/conf
-    SERVICE_PLUGIN_PATH=/opt/gate/plugins
+    CONF_DIR=/${CUSTOMPLUGIN_RELEASEORG}/conf \
+    SERVICE_PLUGIN_PATH=/opt/gate/plugins \
     CUSTOMGATE_PLUGIN_PATH=/opt/spinnaker/plugins
 
 # Enabling fips mode
