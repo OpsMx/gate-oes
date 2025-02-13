@@ -8,8 +8,7 @@ RUN yum -y update && \
     rm -rf /var/cache/yum
 
 # Build a custom JRE.
-# For now, we will include all modules.  We could try to remove the ones
-# we don't need to reduce image size and security attack surface.
+
 WORKDIR /jrebuild
 RUN java --list-modules | cut -d'@' -f1 > modules
 RUN jlink --output runtime --add-modules `paste -sd, - < modules` --compress 2 --vm server
@@ -62,7 +61,6 @@ RUN rpm -Uvh --force  krb5-libs-1.18.2-30.el8_10.x86_64.rpm
 RUN adduser spinnaker
 
 RUN mkdir -p ${SERVICE_PLUGIN_PATH} && mkdir -p ${CUSTOMGATE_PLUGIN_PATH}
-
 
 #custom plugin zip files adding
 ARG CUSTOMPLUGIN_RELEASEVERSION_PLUGIN
